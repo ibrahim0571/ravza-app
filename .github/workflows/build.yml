@@ -7,7 +7,6 @@ on:
       - 'v*'
 
 jobs:
-  # ─── ANDROID APK/AAB ───────────────────────────────────
   android:
     runs-on: ubuntu-latest
     steps:
@@ -28,26 +27,14 @@ jobs:
       - name: Build APK (debug)
         run: |
           cd android
+          chmod +x gradlew
           ./gradlew assembleDebug
-      - name: Build AAB (release, imzalı — keystore secret gerekli)
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
-        run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/ravza.keystore
-          cd android
-          ./gradlew bundleRelease \
-            -Pandroid.injected.signing.store.file=ravza.keystore \
-            -Pandroid.injected.signing.store.password=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} \
-            -Pandroid.injected.signing.key.alias=${{ secrets.ANDROID_KEY_ALIAS }} \
-            -Pandroid.injected.signing.key.password=${{ secrets.ANDROID_KEY_PASSWORD }}
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ravza-android
-          path: |
-            android/app/build/outputs/apk/debug/*.apk
-            android/app/build/outputs/bundle/release/*.aab
+          name: ravza-android-apk
+          path: android/app/build/outputs/apk/debug/*.apk
 
-  # ─── iOS IPA (Mac runner — Apple Developer hesabı gerekli) ──
   ios:
     runs-on: macos-latest
     steps:
@@ -61,10 +48,10 @@ jobs:
         run: |
           npx cap add ios || true
           npx cap sync ios
-      - name: Build iOS (imzasız — App Store için Apple hesabı + fastlane gerekli)
+      - name: Build iOS (imzasız)
         run: |
           cd ios/App
           xcodebuild -workspace App.xcworkspace -scheme App \
             -configuration Release -sdk iphoneos \
             -archivePath build/Ravza.xcarchive archive \
-            CODE_SIGNING_ALLOWED=NO || echo "iOS imzasız derleme (App Store için Apple Dev hesabı + fastlane ekle)"
+            CODE_SIGNING_ALLOWED=NO || echo "iOS imzasiz derleme (App Store icin Apple Dev hesabi gerekli)"
