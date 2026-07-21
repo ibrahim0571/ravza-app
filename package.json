@@ -1,0 +1,27 @@
+{
+  "name": "ravza-native-app",
+  "version": "1.0.0",
+  "description": "Ravza — İslami Yaşam Platformu native app (Capacitor, Android + iOS)",
+  "private": true,
+  "scripts": {
+    "sync": "cap sync",
+    "android": "cap add android && cap sync android && cap open android",
+    "ios": "cap add ios && cap sync ios && cap open ios",
+    "build:android": "cap sync android && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/ios": "^6.2.0",
+    "@capacitor/splash-screen": "^6.0.3",
+    "@capacitor/status-bar": "^6.0.2",
+    "@capacitor/push-notifications": "^6.0.4",
+    "@capacitor/haptics": "^6.0.2",
+    "@capacitor/app": "^6.0.2",
+    "@capacitor/network": "^6.0.3",
+    "@capacitor-community/bluetooth-le": "^6.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0"
+  }
+}
