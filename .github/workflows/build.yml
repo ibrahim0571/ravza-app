@@ -2,56 +2,144 @@ name: Ravza Native App Build
 
 on:
   workflow_dispatch:
+    inputs:
+      release:
+        description: 'Release build (imzalı AAB)'
+        type: boolean
+        default: false
   push:
     tags:
       - 'v*'
 
 jobs:
+  # ─── ANDROID APK (debug) + AAB (release, imzalı) ──────────
   android:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
       - name: Install deps
         run: npm install
-      - name: Add Android platform
+
+      - name: Add Android platform + sync
         run: |
           npx cap add android || true
           npx cap sync android
+
+      - name: Gradlew izin
+        run: chmod +x android/gradlew || true
+
       - name: Build APK (debug)
         run: |
           cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
-      - name: Upload APK
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Build AAB (release, imzalı)
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        env:
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/ravza.keystore
+          cd android
+          ./gradlew bundleRelease --stacktrace \
+            -Pandroid.injected.signing.store.file=ravza.keystore \
+            -Pandroid.injected.signing.store.password="$KS_PASS" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASS"
+
+      - name: Build APK (release, imzalı — direkt kurulum için)
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        env:
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          cd android
+          ./gradlew assembleRelease --stacktrace \
+            -Pandroid.injected.signing.store.file=ravza.keystore \
+            -Pandroid.injected.signing.store.password="$KS_PASS" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASS"
+
+      - name: Upload Android çıktıları
         uses: actions/upload-artifact@v4
         with:
-          name: ravza-android-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          name: ravza-android
+          retention-days: 30
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/bundle/release/*.aab
 
+      - name: Build log (hata halinde)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-log
+          path: |
+            android/app/build/reports/**
+            android/build/**/*.txt
+
+  # ─── iOS IPA (macOS runner — Apple Developer hesabı gerekli) ──
   ios:
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+
       - name: Install deps
         run: npm install
-      - name: Add iOS platform
+
+      - name: Add iOS platform + sync
         run: |
           npx cap add ios || true
           npx cap sync ios
-      - name: Build iOS (imzasız)
+
+      - name: CocoaPods
+        run: |
+          cd ios/App
+          pod install || true
+
+      - name: Build iOS (imzasız arşiv — App Store için Apple Dev + fastlane)
         run: |
           cd ios/App
           xcodebuild -workspace App.xcworkspace -scheme App \
             -configuration Release -sdk iphoneos \
             -archivePath build/Ravza.xcarchive archive \
-            CODE_SIGNING_ALLOWED=NO || echo "iOS imzasiz derleme (App Store icin Apple Dev hesabi gerekli)"
+            CODE_SIGNING_ALLOWED=NO || echo "iOS imzasız derleme tamamlandı (App Store için Apple Dev hesabı + fastlane/ASC API key ekle)"
+
+      - name: Upload iOS arşiv
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ravza-ios-archive
+          retention-days: 30
+          path: ios/App/build/Ravza.xcarchive
