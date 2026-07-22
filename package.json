@@ -21,7 +21,7 @@
     "@capacitor/network": "^6.0.3",
     "@capacitor/keyboard": "^6.0.3",
     "@capacitor-community/bluetooth-le": "^6.0.1",
-    "@capacitor-community/native-biometric": "^6.1.0"
+    "@capgo/capacitor-native-biometric": "^6.0.4"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.2.0"
