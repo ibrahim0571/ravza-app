@@ -78,10 +78,10 @@ jobs:
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/ravza.keystore
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$GITHUB_WORKSPACE/ravza.keystore"
           cd android
           ./gradlew bundleRelease --stacktrace \
-            -Pandroid.injected.signing.store.file=ravza.keystore \
+            -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/ravza.keystore" \
             -Pandroid.injected.signing.store.password="$KS_PASS" \
             -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
             -Pandroid.injected.signing.key.password="$KEY_PASS"
@@ -95,7 +95,7 @@ jobs:
         run: |
           cd android
           ./gradlew assembleRelease --stacktrace \
-            -Pandroid.injected.signing.store.file=ravza.keystore \
+            -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/ravza.keystore" \
             -Pandroid.injected.signing.store.password="$KS_PASS" \
             -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
             -Pandroid.injected.signing.key.password="$KEY_PASS"
