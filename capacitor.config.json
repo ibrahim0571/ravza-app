@@ -13,10 +13,13 @@
   },
   "plugins": {
     "SplashScreen": {
-      "launchShowDuration": 1500,
+      "launchShowDuration": 2000,
+      "launchAutoHide": false,
       "backgroundColor": "#0e6b58",
       "showSpinner": false,
-      "androidScaleType": "CENTER_CROP"
+      "androidScaleType": "CENTER_CROP",
+      "splashFullScreen": true,
+      "splashImmersive": true
     },
     "PushNotifications": {
       "presentationOptions": ["badge", "sound", "alert"]
@@ -24,14 +27,19 @@
     "StatusBar": {
       "style": "LIGHT",
       "backgroundColor": "#0e6b58"
+    },
+    "Keyboard": {
+      "resize": "native"
     }
   },
   "android": {
     "allowMixedContent": false,
-    "backgroundColor": "#0e6b58"
+    "backgroundColor": "#0e6b58",
+    "webContentsDebuggingEnabled": false
   },
   "ios": {
     "contentInset": "always",
-    "backgroundColor": "#0e6b58"
+    "backgroundColor": "#0e6b58",
+    "limitsNavigationsToAppBoundDomains": false
   }
 }
