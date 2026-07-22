@@ -48,6 +48,20 @@ jobs:
           npx cap add android || true
           npx cap sync android
 
+      - name: Android izinleri + versionCode (BLE/bildirim/biyometrik)
+        run: |
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          # izinleri <manifest> acilisindan sonra ekle (yoksa)
+          if ! grep -q "BLUETOOTH_SCAN" "$MANIFEST"; then
+            perl -0pi -e 's/(<manifest[^>]*>)/$1\n    <uses-permission android:name="android.permission.INTERNET"\/>\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"\/>\n    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation"\/>\n    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"\/>\n    <uses-permission android:name="android.permission.USE_BIOMETRIC"\/>\n    <uses-permission android:name="android.permission.VIBRATE"\/>\n    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false"\/>/' "$MANIFEST"
+            echo "izinler eklendi"
+          fi
+          # versionCode: GitHub run number ile benzersiz
+          GRADLE=android/app/build.gradle
+          sed -i "s/versionCode [0-9]*/versionCode ${{ github.run_number }}/" "$GRADLE" || true
+          echo "versionCode=${{ github.run_number }}"
+          grep -E "versionCode|versionName" "$GRADLE" | head -2 || true
+
       - name: Gradlew izin
         run: chmod +x android/gradlew || true
 
@@ -123,6 +137,16 @@ jobs:
           npx cap add ios || true
           npx cap sync ios
 
+      - name: iOS Info.plist izinleri (Bluetooth/FaceID/push açıklamaları)
+        run: |
+          PLIST=ios/App/App/Info.plist
+          if [ -f "$PLIST" ] && ! grep -q "NSBluetoothAlwaysUsageDescription" "$PLIST"; then
+            /usr/libexec/PlistBuddy -c "Add :NSBluetoothAlwaysUsageDescription string 'Ravza zikir yüzüğünüzü bağlamak için Bluetooth kullanır.'" "$PLIST" || true
+            /usr/libexec/PlistBuddy -c "Add :NSBluetoothPeripheralUsageDescription string 'Ravza zikir cihazınızla bağlantı için Bluetooth kullanır.'" "$PLIST" || true
+            /usr/libexec/PlistBuddy -c "Add :NSFaceIDUsageDescription string 'Ravza güvenli girişte Face ID kullanır.'" "$PLIST" || true
+            echo "iOS izinleri eklendi"
+          fi
+
       - name: CocoaPods
         run: |
           cd ios/App
@@ -143,3 +167,4 @@ jobs:
           name: ravza-ios-archive
           retention-days: 30
           path: ios/App/build/Ravza.xcarchive
+
