@@ -19,7 +19,9 @@
     "@capacitor/haptics": "^6.0.2",
     "@capacitor/app": "^6.0.2",
     "@capacitor/network": "^6.0.3",
-    "@capacitor-community/bluetooth-le": "^6.0.1"
+    "@capacitor/keyboard": "^6.0.3",
+    "@capacitor-community/bluetooth-le": "^6.0.1",
+    "@capacitor-community/native-biometric": "^6.1.0"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.2.0"
