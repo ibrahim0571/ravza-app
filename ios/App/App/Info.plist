@@ -80,8 +80,6 @@
 	<string>Ravza, profil fotoğrafı çekmeniz ve QR kod okutmanız için kamerayı kullanır.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Ravza, hesabınıza güvenli ve hızlı giriş yapmanız için Face ID kullanır.</string>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>Ravza sizi takip etmez ve reklam için veri toplamaz.</string>
 
 	<key>UIBackgroundModes</key>
 	<array>
