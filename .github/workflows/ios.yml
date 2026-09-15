@@ -127,16 +127,24 @@ jobs:
           set -e
           # Saglama profilinin adini oku (imzalama icin gerekli)
           PP=$(ls ~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision | head -1)
-          PROFIL_ADI=$(security cms -D -i "$PP" | plutil -extract Name raw -)
+          export PROFIL_ADI=$(security cms -D -i "$PP" | plutil -extract Name raw -)
           echo "Profil: $PROFIL_ADI"
+
+          # KOK NEDEN NOTU: Profil komut satirindan verilirse Xcode onu TUM
+          # hedeflere (Pods/eklenti kutuphaneleri dahil) uygular ve
+          # "does not support provisioning profiles" hatasi verir.
+          # Cozum: profili SADECE ana uygulamaya, proje dosyasi uzerinden ver.
+          # KOK NEDEN: profil komut satirindan verilirse TUM hedeflere
+          # (Pods dahil) uygulanir -> "does not support provisioning profiles".
+          # Cozum: proje dosyasindaki App hedefine yaz, Pods'a dokunma.
+          sed -i '' "s|PRODUCT_BUNDLE_IDENTIFIER = com.ibrahimaktas.ravza;|PRODUCT_BUNDLE_IDENTIFIER = com.ibrahimaktas.ravza; CODE_SIGN_STYLE = Manual; DEVELOPMENT_TEAM = $TEAM_ID; PROVISIONING_PROFILE_SPECIFIER = \"$PROFIL_ADI\"; CODE_SIGN_IDENTITY = \"iPhone Distribution\";|g" App.xcodeproj/project.pbxproj
+          grep -c "PROVISIONING_PROFILE_SPECIFIER" App.xcodeproj/project.pbxproj
 
           xcodebuild -workspace App.xcworkspace -scheme App \
             -configuration Release -sdk iphoneos \
             -archivePath build/App.xcarchive \
+            -allowProvisioningUpdates \
             DEVELOPMENT_TEAM="$TEAM_ID" \
-            CODE_SIGN_STYLE=Manual \
-            PROVISIONING_PROFILE_SPECIFIER="$PROFIL_ADI" \
-            CODE_SIGN_IDENTITY="iPhone Distribution" \
             archive
 
           cat > /tmp/ExportOptions.plist <<EOP
@@ -147,6 +155,7 @@ jobs:
             <key>teamID</key><string>$TEAM_ID</string>
             <key>uploadSymbols</key><true/>
             <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>iPhone Distribution</string>
             <key>provisioningProfiles</key>
             <dict><key>com.ibrahimaktas.ravza</key><string>$PROFIL_ADI</string></dict>
           </dict></plist>
