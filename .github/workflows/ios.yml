@@ -1,0 +1,97 @@
+# Ravza — iOS derleme (Mac GEREKMEZ, GitHub'in macOS runner'i kullanilir)
+# 2 mod:
+#  A) imzasiz  -> her push'ta calisir, .app/.ipa uretir, TEST icin (Apple hesabi GEREKMEZ)
+#  B) imzali   -> secrets varsa TestFlight'a yukler (Apple Developer 99$/yil GEREKIR)
+name: iOS Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      mod:
+        description: 'imzasiz (test) veya imzali (TestFlight)'
+        required: true
+        default: 'imzasiz'
+        type: choice
+        options: [imzasiz, imzali]
+  push:
+    branches: [main]
+    paths: ['ios/**', 'capacitor.config.json', 'package.json', '.github/workflows/ios.yml']
+
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Bagimliliklar
+        run: npm ci || npm install
+
+      - name: www klasoru garanti
+        run: |
+          mkdir -p www
+          [ -f www/index.html ] || echo '<!doctype html><meta http-equiv="refresh" content="0;url=https://tesbihat.ibrahimaktas.com">' > www/index.html
+
+      - name: Capacitor sync
+        run: npx cap sync ios
+
+      - name: CocoaPods
+        working-directory: ios/App
+        run: |
+          pod repo update --silent || true
+          pod install
+
+      - name: Xcode surumu
+        run: xcodebuild -version && ls ios/App
+
+      # ---------- A) IMZASIZ (Apple hesabi gerekmez) ----------
+      - name: Derle (imzasiz)
+        if: github.event.inputs.mod != 'imzali'
+        working-directory: ios/App
+        run: |
+          xcodebuild -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=NO \
+            build
+
+      - name: IPA paketle (imzasiz)
+        if: github.event.inputs.mod != 'imzali'
+        working-directory: ios/App
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qr Ravza-imzasiz.ipa Payload
+          ls -la Ravza-imzasiz.ipa
+
+      - name: Ciktiyi yukle
+        if: github.event.inputs.mod != 'imzali'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ravza-ios-imzasiz
+          path: ios/App/Ravza-imzasiz.ipa
+          retention-days: 30
+
+      # ---------- B) IMZALI (Apple Developer 99$ gerekir) ----------
+      - name: Sertifika kur (imzali)
+        if: github.event.inputs.mod == 'imzali'
+        env:
+          P12: ${{ secrets.IOS_P12_BASE64 }}
+          P12_PW: ${{ secrets.IOS_P12_PASSWORD }}
+          PROFILE: ${{ secrets.IOS_PROVISION_BASE64 }}
+        run: |
+          if [ -z "$P12" ]; then echo "::error::IOS_P12_BASE64 secret yok. Apple Developer hesabi gerekli."; exit 1; fi
+          echo "$P12" | base64 -d > /tmp/cert.p12
+          echo "$PROFILE" | base64 -d > /tmp/pp.mobileprovision
+       
