@@ -19,10 +19,23 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+
+      - name: Xcode surumu sec (iOS 26 SDK zorunlu)
+        run: |
+          echo "--- Kurulu Xcode surumleri ---"
+          ls /Applications | grep -i "^Xcode" || true
+          # Apple: iOS 26 SDK ZORUNLU (17.5 ile yukleme REDDEDILIYOR)
+          # En yuksek surumu sec
+          EN_YENI=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+          echo "Secilen: $EN_YENI"
+          sudo xcode-select -s "$EN_YENI/Contents/Developer"
+          xcodebuild -version
+          echo "--- iOS SDK ---"
+          xcodebuild -showsdks | grep -i ios
 
       - name: Node 20
         uses: actions/setup-node@v4
@@ -45,9 +58,6 @@ jobs:
         run: |
           pod repo update --silent || true
           pod install
-
-      - name: Xcode surumu
-        run: xcodebuild -version && ls ios/App
 
       # ---------- A) IMZASIZ (Apple hesabi gerekmez) ----------
       - name: Derle (imzasiz)
