@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Ravza</title>
+<style>
+  :root{ --emerald:#0e6b58; --emerald-deep:#073D27; --gold:#C9A227; --gold-light:#E3C55A; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:var(--emerald);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  #splash{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 35%,#128a6f 0%,#0e6b58 45%,#073D27 100%);
+    z-index:9999;transition:opacity .5s ease}
+  .dome{width:150px;height:150px;margin-bottom:28px;animation:rise 1.2s cubic-bezier(0.16,1,0.3,1) both, float 4s ease-in-out 1.2s infinite}
+  @keyframes rise{from{opacity:0;transform:translateY(30px) scale(.85)}to{opacity:1;transform:none}}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .dome svg{filter:drop-shadow(0 10px 30px rgba(201,162,39,.45))}
+  .brand{font-size:44px;font-weight:700;letter-spacing:6px;
+    background:linear-gradient(90deg,#E3C55A,#F0E4B8,#C9A227);-webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;animation:rise 1.2s cubic-bezier(0.16,1,0.3,1) .15s both}
+  .ar{font-size:22px;color:var(--gold-light);margin-top:4px;opacity:.9;animation:rise 1.2s cubic-bezier(0.16,1,0.3,1) .25s both}
+  .tag{font-size:12px;color:#bfe0cd;letter-spacing:4px;text-transform:uppercase;margin-top:14px;animation:rise 1.2s ease .35s both}
+  .loader{width:54px;height:3px;background:rgba(255,255,255,.15);border-radius:3px;margin-top:40px;overflow:hidden;animation:rise 1.2s ease .45s both}
+  .loader::after{content:'';display:block;width:40%;height:100%;background:var(--gold);border-radius:3px;animation:load 1.5s ease-in-out infinite}
+  @keyframes load{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
+
+  /* offline / hata durumu */
+  #err{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 35%,#128a6f,#0e6b58 45%,#073D27);z-index:10000;padding:32px;text-align:center}
+  #err.show{display:flex}
+  #err .ei{font-size:56px;margin-bottom:16px}
+  #err h2{color:#fff;font-size:20px;font-weight:600}
+  #err p{color:#bfe0cd;font-size:14px;margin-top:8px;line-height:1.5;max-width:280px}
+  #err button{margin-top:26px;padding:14px 34px;border:none;border-radius:26px;
+    background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#073D27;font-size:15px;font-weight:700;
+    letter-spacing:.5px;box-shadow:0 8px 24px rgba(201,162,39,.35);cursor:pointer}
+  #err button:active{transform:scale(.95)}
+</style>
+</head>
+<body>
+  <div id="splash">
+    <div class="dome">
+      <svg width="150" height="150" viewBox="0 0 150 150">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E3C55A"/><stop offset="1" stop-color="#C9A227"/></linearGradient></defs>
+        <rect x="34" y="84" width="82" height="52" rx="5" fill="#0a5544" stroke="url(#g)" stroke-width="1.5"/>
+        <path d="M46 84 Q46 46 75 39 Q104 46 104 84 Z" fill="url(#g)"/>
+        <path d="M75 16 L75 39" stroke="url(#g)" stroke-width="2.5"/>
+        <circle cx="75" cy="13" r="5.5" fill="url(#g)"/>
+        <path d="M75 8 Q80 13 75 18 Q70 13 75 8" fill="#0a5544"/>
+        <rect x="54" y="102" width="14" height="34" rx="7" fill="#073D27"/>
+        <rect x="82" y="102" width="14" height="34" rx="7" fill="#073D27"/>
+        <rect x="16" y="70" width="10" height="66" rx="3" fill="#0a5544" stroke="url(#g)" stroke-width="1"/>
+        <rect x="124" y="70" width="10" height="66" rx="3" fill="#0a5544" stroke="url(#g)" stroke-width="1"/>
+        <circle cx="21" cy="68" r="3.5" fill="url(#g)"/><circle cx="129" cy="68" r="3.5" fill="url(#g)"/>
+      </svg>
+    </div>
+    <div class="brand">RAVZA</div>
+    <div class="ar">رَوْضَة</div>
+    <div class="tag">Zikir &middot; Vird &middot; Huzur</div>
+    <div class="loader"></div>
+  </div>
+
+  <div id="err">
+    <div class="ei">🌙</div>
+    <h2>Bağlantı bekleniyor</h2>
+    <p>Ravza'ya ulaşmak için internet bağlantısı gerekiyor. Bağlantını kontrol edip tekrar dene.</p>
+    <button onclick="tryLoad()">Tekrar Dene</button>
+  </div>
+
+<script>
+  var TARGET = "https://tesbihat.ibrahimaktas.com/dashboard";
+  var tries = 0;
+  function online(){ return (typeof navigator!=='undefined') ? navigator.onLine : true; }
+  function showErr(){ document.getElementById('err').classList.add('show'); }
+  function hideErr(){ document.getElementById('err').classList.remove('show'); }
+  function tryLoad(){
+    hideErr();
+    tries++;
+    if(!online()){
+      // 2sn bekle, hala yoksa hata goster
+      setTimeout(function(){ if(!online()) showErr(); else doRedirect(); }, 2000);
+      return;
+    }
+    doRedirect();
+  }
+  function doRedirect(){
+    // canliya git (server-mode: gercek site acilir)
+    window.location.replace(TARGET);
+  }
+  // ilk acilis
+  window.addEventListener('load', function(){
+    // splash minimum gorunsun, sonra siteye git
+    setTimeout(tryLoad, 900);
+  });
+  // baglanti gelince otomatik dene
+  window.addEventListener('online', function(){ if(document.getElementById('err').classList.contains('show')) tryLoad(); });
+</script>
+</body>
+</html>

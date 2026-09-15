@@ -1,0 +1,60 @@
+{
+	"appId": "com.ibrahimaktas.ravza",
+	"appName": "Ravza",
+	"webDir": "www",
+	"server": {
+		"url": "https://tesbihat.ibrahimaktas.com",
+		"cleartext": false,
+		"androidScheme": "https",
+		"allowNavigation": [
+			"tesbihat.ibrahimaktas.com",
+			"*.ibrahimaktas.com"
+		]
+	},
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 2000,
+			"launchAutoHide": false,
+			"backgroundColor": "#0e6b58",
+			"showSpinner": false,
+			"androidScaleType": "CENTER_CROP",
+			"splashFullScreen": true,
+			"splashImmersive": true
+		},
+		"PushNotifications": {
+			"presentationOptions": [
+				"badge",
+				"sound",
+				"alert"
+			]
+		},
+		"StatusBar": {
+			"style": "LIGHT",
+			"backgroundColor": "#0e6b58"
+		},
+		"Keyboard": {
+			"resize": "native"
+		}
+	},
+	"android": {
+		"allowMixedContent": false,
+		"backgroundColor": "#0e6b58",
+		"webContentsDebuggingEnabled": false
+	},
+	"ios": {
+		"contentInset": "always",
+		"backgroundColor": "#0e6b58",
+		"limitsNavigationsToAppBoundDomains": false
+	},
+	"packageClassList": [
+		"SplashScreenPlugin",
+		"StatusBarPlugin",
+		"PushNotificationsPlugin",
+		"HapticsPlugin",
+		"AppPlugin",
+		"CAPNetworkPlugin",
+		"KeyboardPlugin",
+		"BluetoothLe",
+		"NativeBiometric"
+	]
+}
