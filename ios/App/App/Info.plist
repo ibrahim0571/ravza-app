@@ -73,19 +73,17 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Ravza, bulunduğunuz yere göre namaz vakitlerini, kıble yönünü ve yakınınızdaki camileri göstermek için konumunuzu kullanır.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Ravza, sesli zikir ve tilavet kaydı özelliklerinde mikrofonu kullanır.</string>
+	<string>Ravza, Kur'an okuma pratiğinde telaffuzunuzu dinlemek ve sesli zikir kaydı için mikrofonu kullanır.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Ravza, profil fotoğrafınızı seçmeniz için fotoğraf kitaplığına erişir.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Ravza, profil fotoğrafı çekmeniz ve QR kod okutmanız için kamerayı kullanır.</string>
+	<string>Ravza, ürün barkodlarını okutarak helal içerik sorgulamanız, profil fotoğrafı çekmeniz ve QR kod okutmanız için kamerayı kullanır.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Ravza, hesabınıza güvenli ve hızlı giriş yapmanız için Face ID kullanır.</string>
 
 	<key>UIBackgroundModes</key>
 	<array>
-		<string>bluetooth-central</string>
 		<string>remote-notification</string>
-		<string>audio</string>
 		<string>fetch</string>
 	</array>
 
