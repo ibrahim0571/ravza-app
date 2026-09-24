@@ -1,4 +1,4 @@
-name: RIM iOS -> TestFlight (uye: App Store / admin: SADECE dahili TestFlight)
+name: "RIM iOS TestFlight (uye App Store, yonetim sadece dahili)"
 on:
   workflow_dispatch:
     inputs:
