@@ -9,7 +9,8 @@
     "allowNavigation": [
       "tesbihat.ibrahimaktas.com",
       "*.ibrahimaktas.com"
-    ]
+    ],
+    "errorPath": "hata.html"
   },
   "plugins": {
     "SplashScreen": {
