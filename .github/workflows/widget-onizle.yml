@@ -19,10 +19,11 @@ jobs:
               ../App/RavzaWidgets/RavzaWidgets.swift > widget.swift
           mkdir -p cikti
           for d in tr ar en; do
-            sed "s/let DIL: String = {/let DIL: String = \"$d\"; let _X: String = {/" widget.swift > w_$d.swift
-            sed "s#cikti/#cikti/${d}_#" main.swift > m_$d.swift
-            [ "$d" = ar ] && sed -i '' 's#let kap = v.frame#let kap = v.environment(\\.layoutDirection, .rightToLeft).frame#' m_$d.swift
-            swiftc -O -target arm64-apple-macos14 w_$d.swift m_$d.swift -o onizle_$d 2>&1 | grep -v warning: | head -40 || true
+            mkdir -p d_$d
+            sed "s/let DIL: String = {/let DIL: String = \"$d\"; let _X: String = {/" widget.swift > d_$d/widget.swift
+            sed "s#cikti/#cikti/${d}_#" main.swift > d_$d/main.swift
+            [ "$d" = ar ] && sed -i '' 's#let kap = v.frame#let kap = v.environment(\\.layoutDirection, .rightToLeft).frame#' d_$d/main.swift
+            swiftc -O -target arm64-apple-macos14 d_$d/widget.swift d_$d/main.swift -o onizle_$d 2>&1 | grep -v warning: | head -40 || true
             ./onizle_$d
           done
           ls cikti
