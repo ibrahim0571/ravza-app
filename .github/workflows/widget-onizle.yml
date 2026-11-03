@@ -1,0 +1,27 @@
+# Ravza iOS widget görsel önizleme (macOS SwiftUI ImageRenderer, mağazaya gitmez)
+name: Widget Onizle
+on:
+  workflow_dispatch:
+jobs:
+  onizle:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Xcode sec
+        run: sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)/Contents/Developer"
+      - name: Ciz
+        working-directory: ios/WidgetOnizle
+        run: |
+          # iOS'a özel API'ler macOS'ta yok: widget kodunu macOS için uyarlanmış kopyayla derle
+          sed -e 's/@main//' -e 's/@Environment(\\.widgetFamily) var aile/var aile: WidgetFamily = .systemMedium/' -e 's/iOSApplicationExtension 17.0/macOS 14.0/' \
+              -e 's/\.accessoryCircular, \.accessoryRectangular, \.accessoryInline//' \
+              ../App/RavzaWidgets/RavzaWidgets.swift > widget.swift
+          swiftc -O -target arm64-apple-macos14 widget.swift main.swift -o onizle 2>&1 | grep -v warning: | head -60 || true
+          ls -la onizle
+          ./onizle
+          ls cikti
+      - uses: actions/upload-artifact@v4
+        with:
+          name: widget-onizle
+          path: ios/WidgetOnizle/cikti/*.png
