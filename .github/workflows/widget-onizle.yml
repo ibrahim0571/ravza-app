@@ -14,7 +14,7 @@ jobs:
         working-directory: ios/WidgetOnizle
         run: |
           # iOS'a özel API'ler macOS'ta yok: widget kodunu macOS için uyarlanmış kopyayla derle
-          sed -e 's/@main//' -e 's/@Environment(\\.widgetFamily) var aile/var aile: WidgetFamily = .systemMedium/' -e 's/iOSApplicationExtension 17.0/macOS 99.0/' \
+          sed -e '/^@available(iOSApplicationExtension 17.0, \*)$/,/^}$/d' -e 's/Button(intent: KildimIntent(vakit: kod)) { ic }.buttonStyle(.plain)/ic/' -e 's/^import AppIntents//' -e 's/@main//' -e 's/@Environment(\\.widgetFamily) var aile/var aile: WidgetFamily = .systemMedium/' -e 's/iOSApplicationExtension 17.0/macOS 99.0/g' \
               -e 's/\.accessoryCircular, \.accessoryRectangular, \.accessoryInline//' \
               ../App/RavzaWidgets/RavzaWidgets.swift > widget.swift
           mkdir -p cikti

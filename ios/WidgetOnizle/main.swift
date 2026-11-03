@@ -13,7 +13,9 @@ import AppKit
 }
 @MainActor func calis() {
     let p = RzProvider()
-    let e = RzEntry(date: Date(), v: p.ornekVakit(), o: p.ornekOzet())
+    var oz = p.ornekOzet(); oz.giris = true; oz.kilinan = ["Fajr", "Dhuhr"]; oz.seri = 12; oz.zikirBugun = 640; oz.zikirHedef = 1000; oz.sabah = true
+    oz.hatimAd = "Ramazan Hatmi"; oz.hatimToplam = 30; oz.hatimBiten = 17
+    let e = RzEntry(date: Date(), v: p.ornekVakit(), o: oz)
     ciz(VakitPanelView(aile: .systemSmall, e: e), 158, 158, "1_vakit_kucuk")
     ciz(VakitPanelView(aile: .systemMedium, e: e), 338, 158, "2_vakit_orta")
     ciz(HalkaView(aile: .systemSmall, e: e), 158, 158, "3_halka")
@@ -24,6 +26,9 @@ import AppKit
     ciz(CumaView(e: e), 158, 158, "8_cuma")
     ciz(KampanyaView(e: e), 338, 158, "9_kampanya")
     ciz(OrucView(e: e), 338, 158, "10_oruc")
+    ciz(NamazTakipView(e: e), 338, 158, "11_namaz")
+    ciz(HedeflerView(e: e), 338, 158, "12_hedefler")
+    ciz(HatimView(e: e), 158, 158, "13_hatim")
 }
 try? FileManager.default.createDirectory(atPath: "cikti", withIntermediateDirectories: true)
 MainActor.assumeIsolated { calis() }
