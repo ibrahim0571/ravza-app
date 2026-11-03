@@ -350,7 +350,7 @@ struct VakitPanelView: View {
             } else { Spacer(minLength: 0) }
         }
         .rzZemin()
-        .widgetURL(URL(string: SITE + "/namaz-vakitleri"))
+        .widgetURL(URL(string: SITE + "/ezan-vakti"))
     }
 }
 func saatYaz(_ d: Date) -> String { let f = DateFormatter(); f.dateFormat = "HH:mm"; return f.string(from: d) }
@@ -375,14 +375,14 @@ struct HalkaView: View {
                 Text(String(L(VAKIT_AD[i]).prefix(3)))
             } currentValueLabel: { Text(saatYaz(hedef)).font(.system(size: 11, weight: .semibold)) }
             .gaugeStyle(.accessoryCircular)
-            .widgetURL(URL(string: SITE + "/namaz-vakitleri"))
+            .widgetURL(URL(string: SITE + "/ezan-vakti"))
         case .accessoryRectangular:
             VStack(alignment: .leading, spacing: 1) {
                 Text("\(L(VAKIT_AD[i])) \(saatYaz(hedef))").font(.system(size: 15, weight: .bold))
                 Text(hedef, style: .timer).font(.system(size: 13).monospacedDigit())
                 ProgressView(timerInterval: onceki...hedef, countsDown: false) { EmptyView() } currentValueLabel: { EmptyView() }
             }
-            .widgetURL(URL(string: SITE + "/namaz-vakitleri"))
+            .widgetURL(URL(string: SITE + "/ezan-vakti"))
         case .accessoryInline:
             Text("\(L(VAKIT_AD[i])) \(saatYaz(hedef))")
         default:
@@ -397,7 +397,7 @@ struct HalkaView: View {
             }
             .padding(4)
             .rzZemin()
-            .widgetURL(URL(string: SITE + "/namaz-vakitleri"))
+            .widgetURL(URL(string: SITE + "/ezan-vakti"))
         }
     }
 }
