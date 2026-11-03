@@ -24,7 +24,7 @@ jobs:
             sed "s#cikti/#cikti/${d}_#" main.swift > d_$d/main.swift
             [ "$d" = ar ] && sed -i '' 's#let kap = v.frame#let kap = v.environment(\\.layoutDirection, .rightToLeft).frame#' d_$d/main.swift
             swiftc -O -target arm64-apple-macos14 d_$d/widget.swift d_$d/main.swift -o onizle_$d 2>&1 | grep -v warning: | head -40 || true
-            ./onizle_$d
+            RZ_ONIZLE=1 ./onizle_$d
           done
           ls cikti
       - uses: actions/upload-artifact@v4

@@ -47,12 +47,16 @@ struct Girih: View {
     }
 }
 
+/// CI görsel önizlemesi (macOS ImageRenderer) için; telefonda her zaman false.
+let RZ_ONIZLE = ProcessInfo.processInfo.environment["RZ_ONIZLE"] != nil
 struct RzZemin: ViewModifier {
     @ViewBuilder func body(content: Content) -> some View {
-        if #available(iOSApplicationExtension 17.0, *) {
+        if RZ_ONIZLE {
+            content   // yalnız CI görsel önizlemesi: zemin ve kenar boşluğunu önizleyici verir
+        } else if #available(iOSApplicationExtension 17.0, *) {
             content.containerBackground(for: .widget) { ZStack { rzZeminGrad; Girih() } }
         } else {
-            content.padding(14).background(ZStack { rzZeminGrad; Girih() })
+            content.padding(16).background(ZStack { rzZeminGrad; Girih() })
         }
     }
 }
@@ -278,7 +282,7 @@ struct VakitPanelView: View {
     let e: RzEntry
     var body: some View {
         let (i, hedef, _) = e.v.siradaki(e.date)
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: aile == .systemSmall ? 4 : 2) {
             RzUst(baslik: "Ravza", sag: aile == .systemSmall ? "" : "\(e.v.hicriGun) \(e.v.hicriAy) \(e.v.hicriYil)")
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(L(VAKIT_AD[i])).font(.system(size: aile == .systemSmall ? 14 : 16, weight: .bold, design: .serif)).foregroundColor(.rzAltin)
@@ -286,7 +290,7 @@ struct VakitPanelView: View {
             }
             HStack(alignment: .lastTextBaseline, spacing: 5) {
                 Text(hedef, style: .timer)
-                    .font(.system(size: aile == .systemSmall ? 28 : 34, weight: .bold, design: .rounded).monospacedDigit())
+                    .font(.system(size: aile == .systemSmall ? 28 : 30, weight: .bold, design: .rounded).monospacedDigit())
                     .foregroundStyle(rzAltinGrad).lineLimit(1).minimumScaleFactor(0.6)
                 Text(L("kaldi")).font(.system(size: 10)).foregroundColor(.rzKrem.opacity(0.65)).lineLimit(1)
             }
@@ -514,14 +518,13 @@ struct KampanyaView: View {
     let e: RzEntry
     var body: some View {
         let oran = e.o.kampHedef > 0 ? min(1, Double(e.o.kampToplam) / Double(e.o.kampHedef)) : 0
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 3) {
             RzUst(baslik: L("kampanya"), sag: e.o.kampBaslik)
             HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 0) {
                     Text(L("ummet")).font(.system(size: 10)).foregroundColor(.rzKrem.opacity(0.65))
-                    Text(sayi(e.o.kampToplam)).font(.system(size: 26, weight: .bold, design: .rounded).monospacedDigit()).foregroundStyle(rzAltinGrad)
+                    Text(sayi(e.o.kampToplam)).font(.system(size: 24, weight: .bold, design: .rounded).monospacedDigit()).foregroundStyle(rzAltinGrad)
                         .lineLimit(1).minimumScaleFactor(0.6)
-                    Text("/ " + sayi(e.o.kampHedef)).font(.system(size: 11)).foregroundColor(.rzKrem.opacity(0.65))
                 }
                 Spacer()
                 Text(e.o.kampAr).font(.system(size: 20)).foregroundStyle(rzAltinGrad).lineLimit(1).minimumScaleFactor(0.6)
@@ -533,7 +536,7 @@ struct KampanyaView: View {
                 }
             }.frame(height: 6)
             HStack {
-                Text(yuzde(oran)).font(.system(size: 10, weight: .bold)).foregroundColor(.rzAltinP)
+                Text(yuzde(oran) + "  ·  " + sayi(e.o.kampHedef)).font(.system(size: 10, weight: .bold)).foregroundColor(.rzAltinP).lineLimit(1).minimumScaleFactor(0.8)
                 Spacer()
                 Text(L("katil")).font(.system(size: 10, weight: .bold)).foregroundColor(Color(red: 0.1, green: 0.07, blue: 0.02))
                     .padding(.horizontal, 10).padding(.vertical, 3).background(Capsule().fill(rzAltinGrad))
