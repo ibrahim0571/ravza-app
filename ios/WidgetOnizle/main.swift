@@ -5,7 +5,7 @@ import WidgetKit
 import AppKit
 
 @MainActor func ciz<V: View>(_ v: V, _ w: CGFloat, _ h: CGFloat, _ ad: String) {
-    let kap = v.frame(width: w - 32, height: h - 32, alignment: .top).padding(16).background(ZStack { rzZeminGrad; Girih() }).frame(width: w, height: h).clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    let kap = v.frame(width: w - 32, height: h - 32).padding(16).background(ZStack { rzZeminGrad; Girih() }).frame(width: w, height: h).clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .padding(12).background(Color(white: 0.12))
     let r = ImageRenderer(content: kap); r.scale = 2
     guard let ns = r.nsImage, let t = ns.tiffRepresentation, let b = NSBitmapImageRep(data: t), let png = b.representation(using: .png, properties: [:]) else { print("HATA", ad); return }

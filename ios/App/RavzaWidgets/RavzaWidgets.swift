@@ -68,11 +68,10 @@ struct RzUst: View {
     var body: some View {
         HStack(spacing: 6) {
             Circle().fill(rzAltinGrad).frame(width: 9, height: 9)
-            Text(baslik).font(.system(size: 11, weight: .semibold)).foregroundColor(.rzAltin).lineLimit(1).minimumScaleFactor(0.8)
+            Text(baslik).font(.system(size: 11, weight: .semibold)).foregroundColor(.rzAltin).lineLimit(1).layoutPriority(2)
             Spacer(minLength: 4)
             if !sag.isEmpty {
-                Text(sag).font(.system(size: 10)).foregroundColor(.rzKrem.opacity(0.6)).lineLimit(1).minimumScaleFactor(0.65)
-                    .fixedSize(horizontal: sag.count < 18, vertical: false).layoutPriority(1)
+                Text(sag).font(.system(size: 10)).foregroundColor(.rzKrem.opacity(0.6)).lineLimit(1).minimumScaleFactor(0.7)
             }
         }
     }
@@ -493,8 +492,9 @@ struct CumaView: View {
         let hg = Calendar.current.component(.weekday, from: e.date) // 6 = Cuma
         let kalan = (6 - hg + 7) % 7
         VStack(spacing: 3) {
-            RzUst(baslik: L("cuma"), sag: kalan == 0 ? "" : L("cuma_namazina"))
+            RzUst(baslik: L("cuma"))
             Spacer(minLength: 0)
+            if kalan != 0 { Text(L("cuma_namazina")).font(.system(size: 10)).foregroundColor(.rzKrem.opacity(0.65)).lineLimit(1).minimumScaleFactor(0.8) }
             Text(kalan == 0 ? L("bugun_cuma") : L("gun_n", kalan)).font(.system(size: kalan == 0 ? 20 : 30, weight: .bold, design: .serif))
                 .foregroundStyle(rzAltinGrad).lineLimit(1).minimumScaleFactor(0.6)
             Spacer(minLength: 0)
@@ -529,12 +529,14 @@ struct KampanyaView: View {
                 Spacer()
                 Text(e.o.kampAr).font(.system(size: 20)).foregroundStyle(rzAltinGrad).lineLimit(1).minimumScaleFactor(0.6)
             }
+            Spacer(minLength: 4)
             GeometryReader { g in
                 ZStack(alignment: .leading) {
                     Capsule().fill(Color.rzKrem.opacity(0.12))
                     Capsule().fill(LinearGradient(colors: [.rzPetrol, .rzAltinP], startPoint: .leading, endPoint: .trailing)).frame(width: max(6, g.size.width * oran))
                 }
             }.frame(height: 6)
+            Spacer(minLength: 4)
             HStack {
                 Text(yuzde(oran) + "  ·  " + sayi(e.o.kampHedef)).font(.system(size: 10, weight: .bold)).foregroundColor(.rzAltinP).lineLimit(1).minimumScaleFactor(0.8)
                 Spacer()
@@ -563,6 +565,7 @@ struct OrucView: View {
         let hedef = gunduz ? iftar : (e.date < imsak ? imsak : (v.yarinImsak ?? imsak))
         VStack(alignment: .leading, spacing: 4) {
             RzUst(baslik: v.hicriAyNo == 9 ? "Ramazan · \(v.hicriGun)" : L("oruc"))
+            Spacer(minLength: 2)
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 0) {
                     Text(L("imsak")).font(.system(size: 10)).foregroundColor(.rzKrem.opacity(0.65))
@@ -592,6 +595,7 @@ struct OrucView: View {
             } else {
                 Capsule().fill(Color.rzKrem.opacity(0.12)).frame(height: 4)
             }
+            Spacer(minLength: 2)
         }
         .rzZemin()
         .widgetURL(URL(string: SITE + "/ramazan"))
