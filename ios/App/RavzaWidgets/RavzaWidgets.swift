@@ -64,9 +64,12 @@ struct RzUst: View {
     var body: some View {
         HStack(spacing: 6) {
             Circle().fill(rzAltinGrad).frame(width: 9, height: 9)
-            Text(baslik).font(.system(size: 11, weight: .semibold)).foregroundColor(.rzAltin).lineLimit(1)
+            Text(baslik).font(.system(size: 11, weight: .semibold)).foregroundColor(.rzAltin).lineLimit(1).minimumScaleFactor(0.8)
             Spacer(minLength: 4)
-            Text(sag).font(.system(size: 10)).foregroundColor(.rzKrem.opacity(0.6)).lineLimit(1)
+            if !sag.isEmpty {
+                Text(sag).font(.system(size: 10)).foregroundColor(.rzKrem.opacity(0.6)).lineLimit(1).minimumScaleFactor(0.65)
+                    .fixedSize(horizontal: sag.count < 18, vertical: false).layoutPriority(1)
+            }
         }
     }
 }
@@ -123,6 +126,11 @@ let VAKIT_AD = ["imsak", "gunes", "ogle", "ikindi", "aksam", "yatsi"]
 let VAKIT_AR = ["الفجر", "الشروق", "الظهر", "العصر", "المغرب", "العشاء"]
 let HICRI_TR = ["Muharrem", "Safer", "Rebiülevvel", "Rebiülahir", "Cemaziyelevvel", "Cemaziyelahir", "Recep", "Şaban", "Ramazan", "Şevval", "Zilkade", "Zilhicce"]
 
+func yuzde(_ o: Double) -> String {
+    let f = NumberFormatter(); f.numberStyle = .percent; f.maximumFractionDigits = 1; f.minimumFractionDigits = 1
+    f.locale = Locale(identifier: DIL == "ku" ? "tr" : DIL)
+    return f.string(from: NSNumber(value: o)) ?? String(format: "%.1f%%", o * 100)
+}
 func sayi(_ n: Int) -> String {
     let f = NumberFormatter(); f.numberStyle = .decimal
     f.locale = Locale(identifier: ["tr", "de", "it", "nl"].contains(DIL) ? "tr_TR" : "en_US")
@@ -258,6 +266,7 @@ struct RzProvider: TimelineProvider {
         o.ayetAr = "أَلَا بِذِكْرِ اللّٰهِ تَطْمَئِنُّ الْقُلُوبُ"; o.ayetMeal = DIL == "tr" ? "Bilesiniz ki kalpler ancak Allah'ı anmakla huzur bulur." : "Surely in the remembrance of Allah do hearts find rest."; o.ayetKaynak = "13:28"
         o.esmaAr = "الْمُحْيِي"; o.esmaAd = "El-Muhyî"; o.esmaAnlam = DIL == "tr" ? "Hayat veren" : "The Giver of Life"; o.esmaAdet = 68
         o.kandil = DIL == "tr" ? "Regaib Kandili" : "Raghaib Night"; o.kandilGun = 37
+        o.hadis = DIL == "tr" ? "Ameller ancak niyetlere göredir." : "Actions are only by intentions."; o.hadisKaynak = "Buhârî, 1"
         o.kampBaslik = "10 Milyon La ilahe illallah"; o.kampAr = "لَا إِلٰهَ إِلَّا اللّٰهُ"; o.kampToplam = 1_171_947; o.kampHedef = 10_000_000
         return o
     }
@@ -275,10 +284,13 @@ struct VakitPanelView: View {
                 Text(L(VAKIT_AD[i])).font(.system(size: aile == .systemSmall ? 14 : 16, weight: .bold, design: .serif)).foregroundColor(.rzAltin)
                 if aile != .systemSmall { Text(VAKIT_AR[i]).font(.system(size: 14)).foregroundColor(.rzKrem.opacity(0.7)) }
             }
-            Text(hedef, style: .timer)
-                .font(.system(size: aile == .systemSmall ? 28 : 34, weight: .bold, design: .rounded).monospacedDigit())
-                .foregroundStyle(rzAltinGrad).lineLimit(1).minimumScaleFactor(0.6)
-            Text("\(L(VAKIT_AD[i])) \(saatYaz(hedef)) · \(L("kaldi"))").font(.system(size: 10)).foregroundColor(.rzKrem.opacity(0.65))
+            HStack(alignment: .lastTextBaseline, spacing: 5) {
+                Text(hedef, style: .timer)
+                    .font(.system(size: aile == .systemSmall ? 28 : 34, weight: .bold, design: .rounded).monospacedDigit())
+                    .foregroundStyle(rzAltinGrad).lineLimit(1).minimumScaleFactor(0.6)
+                Text(L("kaldi")).font(.system(size: 10)).foregroundColor(.rzKrem.opacity(0.65)).lineLimit(1)
+            }
+            Text("\(L(VAKIT_AD[i])) · \(saatYaz(hedef))").font(.system(size: 10.5, weight: .medium)).foregroundColor(.rzKrem.opacity(0.75))
             if aile != .systemSmall && !e.v.bos {
                 Spacer(minLength: 2)
                 HStack(spacing: 2) {
@@ -383,6 +395,16 @@ struct AyetView: View {
                 Text("“\(e.o.ayetMeal)”").font(.system(size: 13, design: .serif).italic()).foregroundColor(.rzKrem)
                     .multilineTextAlignment(.center).lineLimit(aile == .systemLarge ? 8 : 3).minimumScaleFactor(0.75)
                 Text(e.o.ayetKaynak.uppercased()).font(.system(size: 9.5, weight: .bold)).tracking(0.6).foregroundColor(.rzAltin)
+                if aile == .systemLarge && !e.o.hadis.isEmpty {
+                    Spacer(minLength: 6)
+                    VStack(spacing: 4) {
+                        Text("“\(e.o.hadis)”").font(.system(size: 12, design: .serif)).foregroundColor(.rzKrem.opacity(0.9)).multilineTextAlignment(.center).lineLimit(5).minimumScaleFactor(0.8)
+                        Text(e.o.hadisKaynak).font(.system(size: 9, weight: .bold)).foregroundColor(.rzAltin.opacity(0.85))
+                    }
+                    .padding(10).frame(maxWidth: .infinity)
+                    .background(RoundedRectangle(cornerRadius: 14).fill(Color.rzAltin.opacity(0.09)))
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.rzAltin.opacity(0.25), lineWidth: 0.6))
+                }
             } else {
                 Text("“\(e.o.hadis)”").font(.system(size: 13, design: .serif)).foregroundColor(.rzKrem).multilineTextAlignment(.center).lineLimit(6)
                 Text(e.o.hadisKaynak).font(.system(size: 9.5, weight: .bold)).foregroundColor(.rzAltin)
@@ -511,7 +533,7 @@ struct KampanyaView: View {
                 }
             }.frame(height: 6)
             HStack {
-                Text(String(format: "%%%.1f", oran * 100)).font(.system(size: 10, weight: .bold)).foregroundColor(.rzAltinP)
+                Text(yuzde(oran)).font(.system(size: 10, weight: .bold)).foregroundColor(.rzAltinP)
                 Spacer()
                 Text(L("katil")).font(.system(size: 10, weight: .bold)).foregroundColor(Color(red: 0.1, green: 0.07, blue: 0.02))
                     .padding(.horizontal, 10).padding(.vertical, 3).background(Capsule().fill(rzAltinGrad))
@@ -556,7 +578,14 @@ struct OrucView: View {
                 }
             }
             if gunduz {
-                ProgressView(timerInterval: imsak...iftar, countsDown: false) { EmptyView() } currentValueLabel: { EmptyView() }.tint(.rzAltin)
+                let oran = max(0, min(1, e.date.timeIntervalSince(imsak) / max(1, iftar.timeIntervalSince(imsak))))
+                GeometryReader { g in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.rzKrem.opacity(0.12))
+                        Capsule().fill(LinearGradient(colors: [.rzPetrol, .rzAltinP], startPoint: .leading, endPoint: .trailing)).frame(width: max(6, g.size.width * oran))
+                        Circle().fill(rzAltinGrad).frame(width: 10, height: 10).offset(x: max(0, g.size.width * oran - 5))
+                    }
+                }.frame(height: 10)
             } else {
                 Capsule().fill(Color.rzKrem.opacity(0.12)).frame(height: 4)
             }

@@ -14,12 +14,17 @@ jobs:
         working-directory: ios/WidgetOnizle
         run: |
           # iOS'a özel API'ler macOS'ta yok: widget kodunu macOS için uyarlanmış kopyayla derle
-          sed -e 's/@main//' -e 's/@Environment(\\.widgetFamily) var aile/var aile: WidgetFamily = .systemMedium/' -e 's/iOSApplicationExtension 17.0/macOS 14.0/' \
+          sed -e 's/@main//' -e 's/@Environment(\\.widgetFamily) var aile/var aile: WidgetFamily = .systemMedium/' -e 's/iOSApplicationExtension 17.0/macOS 99.0/' \
               -e 's/\.accessoryCircular, \.accessoryRectangular, \.accessoryInline//' \
               ../App/RavzaWidgets/RavzaWidgets.swift > widget.swift
-          swiftc -O -target arm64-apple-macos14 widget.swift main.swift -o onizle 2>&1 | grep -v warning: | head -60 || true
-          ls -la onizle
-          ./onizle
+          mkdir -p cikti
+          for d in tr ar en; do
+            sed "s/let DIL: String = {/let DIL: String = \"$d\"; let _X: String = {/" widget.swift > w_$d.swift
+            sed "s#cikti/#cikti/${d}_#" main.swift > m_$d.swift
+            [ "$d" = ar ] && sed -i '' 's#let kap = v.frame#let kap = v.environment(\\.layoutDirection, .rightToLeft).frame#' m_$d.swift
+            swiftc -O -target arm64-apple-macos14 w_$d.swift m_$d.swift -o onizle_$d 2>&1 | grep -v warning: | head -40 || true
+            ./onizle_$d
+          done
           ls cikti
       - uses: actions/upload-artifact@v4
         with:
