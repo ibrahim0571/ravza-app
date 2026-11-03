@@ -4,6 +4,8 @@
 // Tasarım: Android ile aynı marka (zümrüt #17463A/#0F3029/#0A1F1A, altın #E0C06A/#f3cf7a, krem #f4ecdc).
 import WidgetKit
 import SwiftUI
+import Security
+import AppIntents
 
 // MARK: - Renk ve yardımcılar
 extension Color {
@@ -116,6 +118,17 @@ let SOZ: [String: [String]] = [
     "cuma_ac": ["Cumaya kalan gün ve sünnetleri", "Days to Friday and its sunnahs", "الأيام حتى الجمعة وسننها", "Tage bis Freitag und Sunna", "Jours avant vendredi et sunnas", "Giorni al venerdì e sunna", "Dagen tot vrijdag en soenna's", "Дни до пятницы и сунны", "Rojên heta înê û sunnet", "金曜日までとスンナ", "距主麻日与圣行"],
     "kampanya_ac": ["Ümmetin zikir kampanyası", "The Ummah's dhikr campaign", "حملة الذكر للأمة", "Dhikr-Kampagne der Umma", "Campagne de dhikr de l'Oumma", "Campagna di dhikr dell'Umma", "Dhikr-campagne van de oemma", "Кампания зикра уммы", "Kampanyaya zikirê", "ウンマのズィクル", "全体赞念活动"],
     "oruc_ac": ["İmsaktan iftara güneş yayı", "Sun arc from imsak to iftar", "قوس الشمس من الإمساك إلى الإفطار", "Sonnenbogen bis Iftar", "Arc solaire jusqu'à l'iftar", "Arco solare fino all'iftar", "Zonneboog tot iftar", "Дуга солнца до ифтара", "Kevana rojê heta fitarê", "イフタールまでの太陽の弧", "从封斋到开斋的日弧"],
+    "giris": ["Ravza'da giriş yapın, kişisel bilgileriniz burada görünsün", "Sign in to Ravza to see your personal data here", "سجّل الدخول في روضة لتظهر بياناتك هنا", "In Ravza anmelden, um deine Daten zu sehen", "Connectez-vous à Ravza pour voir vos données", "Accedi a Ravza per vedere i tuoi dati", "Log in bij Ravza om je gegevens te zien", "Войдите в Ravza, чтобы видеть свои данные", "Têkevin Ravza, da daneyên te xuya bibin", "Ravzaにログインすると表示されます", "登录 Ravza 以显示个人数据"],
+    "namaz_takip": ["Namaz Takibi", "Prayer Tracker", "متابعة الصلاة", "Gebetstracker", "Suivi des prières", "Monitor preghiere", "Gebedstracker", "Учёт намазов", "Şopandina nimêjê", "礼拝トラッカー", "礼拜记录"],
+    "namaz_takip_ac": ["Dokun, kıldığın namazı işaretle", "Tap to mark the prayers you prayed", "اضغط لتسجيل صلاتك", "Tippen, um Gebete abzuhaken", "Touchez pour cocher vos prières", "Tocca per segnare le preghiere", "Tik om gebeden af te vinken", "Нажмите, чтобы отметить", "Bitikîne, nîşan bike", "タップで礼拝を記録", "点击标记已礼拜"],
+    "hedefler": ["Günlük Hedefler", "Daily Goals", "أهداف اليوم", "Tagesziele", "Objectifs du jour", "Obiettivi del giorno", "Dagdoelen", "Цели дня", "Armancên rojê", "今日の目標", "每日目标"],
+    "hedefler_ac": ["Namaz, zikir ve ezkâr halkaları", "Prayer, dhikr and adhkar rings", "حلقات الصلاة والذكر والأذكار", "Ringe für Gebet, Dhikr, Adhkar", "Anneaux prière, dhikr, adhkar", "Anelli preghiera, dhikr, adhkar", "Ringen gebed, dhikr, adhkar", "Кольца намаза, зикра, азкаров", "Xelekên nimêj, zikir, ezkar", "礼拝・ズィクル・アズカール", "礼拜、赞念、记念进度"],
+    "namaz": ["Namaz", "Prayer", "الصلاة", "Gebet", "Prière", "Preghiera", "Gebed", "Намаз", "Nimêj", "礼拝", "礼拜"],
+    "zikir": ["Zikir", "Dhikr", "الذكر", "Dhikr", "Dhikr", "Dhikr", "Dhikr", "Зикр", "Zikir", "ズィクル", "赞念"],
+    "ezkar": ["Ezkâr", "Adhkar", "الأذكار", "Adhkar", "Adhkar", "Adhkar", "Adhkar", "Азкары", "Ezkar", "アズカール", "记念"],
+    "hatim": ["Hatim", "Khatm", "الختمة", "Khatm", "Khatm", "Khatm", "Khatm", "Хатм", "Xetm", "ハトム", "通读"],
+    "hatim_ac": ["Hatim ilerlemen", "Your khatm progress", "تقدّم ختمتك", "Dein Khatm-Fortschritt", "Progression du khatm", "Progresso del khatm", "Je khatm-voortgang", "Прогресс хатма", "Pêşketina xetmê", "ハトムの進み具合", "通读进度"],
+    "hatim_yok": ["Aktif hatmin yok. Ravza'da bir hatim başlat.", "No active khatm. Start one in Ravza.", "لا توجد ختمة نشطة، ابدأ واحدة في روضة.", "Kein aktives Khatm. Starte eines in Ravza.", "Aucun khatm actif. Commencez-en un dans Ravza.", "Nessun khatm attivo. Iniziane uno in Ravza.", "Geen actieve khatm. Start er een in Ravza.", "Нет активного хатма. Начните в Ravza.", "Xetma çalak tune. Di Ravza de dest pê bike.", "進行中のハトムはありません", "暂无进行中的通读"],
     "kilit": ["Kilit ekranı vakti", "Lock screen prayer", "وقت شاشة القفل", "Sperrbildschirm-Gebet", "Prière écran verrouillé", "Preghiera schermata blocco", "Gebed op vergrendelscherm", "Намаз на экране блокировки", "Nimêja ekrana kilîtkirî", "ロック画面の礼拝", "锁屏礼拜"],
 ]
 func L(_ k: String) -> String {
@@ -164,6 +177,24 @@ struct Ozet {
     var esmaAr = "", esmaAd = "", esmaAnlam = "", esmaAdet = 0
     var kandil = "", kandilGun = -1
     var kampId = "", kampBaslik = "", kampAr = "", kampToplam = 0, kampHedef = 0
+    // Kişisel (jeton varsa): namaz, hedef, ezkâr, hatim
+    var giris = false
+    var kilinan: Set<String> = [], seri = 0
+    var zikirBugun = 0, zikirHedef = 1000
+    var sabah = false, aksam = false
+    var hatimAd = "", hatimToplam = 0, hatimBiten = 0
+}
+
+/// Uygulamanın ortak anahtar zincirine bıraktığı widget jetonu (RavzaWidgetJeton.swift ile aynı grup).
+enum RzJeton {
+    static let grup = "ZU23KJAUGH.com.ibrahimaktas.ravza.paylasim"
+    static func oku() -> String? {
+        let q: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrAccount as String: "ravza.widget.jeton",
+                                kSecAttrAccessGroup as String: grup, kSecReturnData as String: true, kSecMatchLimit as String: kSecMatchLimitOne]
+        var out: AnyObject?
+        guard SecItemCopyMatching(q as CFDictionary, &out) == errSecSuccess, let d = out as? Data else { return nil }
+        return String(data: d, encoding: .utf8)
+    }
 }
 
 enum Veri {
@@ -173,6 +204,7 @@ enum Veri {
         var r = URLRequest(url: u, timeoutInterval: 12)
         r.setValue("application/json", forHTTPHeaderField: "Accept")
         r.setValue("RavzaWidget/2.0 iOS", forHTTPHeaderField: "User-Agent")
+        if let j = RzJeton.oku() { r.setValue("Bearer " + j, forHTTPHeaderField: "Authorization") }
         do {
             let (d, y) = try await URLSession.shared.data(for: r)
             guard (y as? HTTPURLResponse)?.statusCode == 200 else { return onbellek(yol) }
@@ -223,6 +255,14 @@ enum Veri {
             o.kampId = k["id"] as? String ?? ""; o.kampBaslik = k["baslik"] as? String ?? ""; o.kampAr = k["arapca"] as? String ?? ""
             o.kampToplam = (k["toplam"] as? NSNumber)?.intValue ?? 0; o.kampHedef = (k["hedef"] as? NSNumber)?.intValue ?? 0
         }
+        o.giris = (j["giris"] as? Bool) ?? false
+        if let n = j["namaz"] as? [String: Any] { o.kilinan = Set((n["kilinan"] as? [String]) ?? []); o.seri = (n["seri"] as? NSNumber)?.intValue ?? 0 }
+        if let h = j["hedef"] as? [String: Any] { o.zikirBugun = (h["zikir_bugun"] as? NSNumber)?.intValue ?? 0; o.zikirHedef = max(1, (h["zikir_hedef"] as? NSNumber)?.intValue ?? 1000) }
+        if let e = j["ezkar"] as? [String: Any] { o.sabah = ((e["sabah"] as? [String: Any])?["tamam"] as? Bool) ?? false; o.aksam = ((e["aksam"] as? [String: Any])?["tamam"] as? Bool) ?? false }
+        if let h = j["hatim"] as? [String: Any] { o.hatimAd = h["ad"] as? String ?? ""; o.hatimToplam = (h["toplam"] as? NSNumber)?.intValue ?? 0; o.hatimBiten = (h["tamamlanan"] as? NSNumber)?.intValue ?? 0 }
+        // Bu cihazdan bugün işaretlenenler (sunucu henüz dönmediyse de görünsün)
+        let yerel = UserDefaults.standard.stringArray(forKey: "kildim_" + gunAnahtar()) ?? []
+        o.kilinan.formUnion(yerel)
         return o
     }
 }
@@ -609,16 +649,171 @@ struct Oruc: Widget {
 }
 
 // MARK: - Paket
+// MARK: - Kişisel widget'lar (uygulamada giriş yapılınca jeton ile)
+func gunAnahtar() -> String { let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; return f.string(from: Date()) }
+let NAMAZ5 = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
+let NAMAZ5_AD = ["imsak", "ogle", "ikindi", "aksam", "yatsi"]
+
+/// iOS 17+: widget'tan "kıldım" (uygulama açılmadan, sunucuya yazar).
+@available(iOSApplicationExtension 17.0, *)
+struct KildimIntent: AppIntent {
+    static var title: LocalizedStringResource = "Kıldım"
+    @Parameter(title: "Vakit") var vakit: String
+    init() {}
+    init(vakit: String) { self.vakit = vakit }
+    func perform() async throws -> some IntentResult {
+        let k = "kildim_" + gunAnahtar()
+        var a = UserDefaults.standard.stringArray(forKey: k) ?? []
+        if !a.contains(vakit) { a.append(vakit); UserDefaults.standard.set(a, forKey: k) }
+        if let u = URL(string: SITE + "/api/user/namaz-kildim"), let j = RzJeton.oku() {
+            var r = URLRequest(url: u, timeoutInterval: 10); r.httpMethod = "POST"
+            r.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            r.setValue("Bearer " + j, forHTTPHeaderField: "Authorization")
+            r.setValue("RavzaWidget/2.0 iOS", forHTTPHeaderField: "User-Agent")
+            r.httpBody = try? JSONSerialization.data(withJSONObject: ["prayer": vakit])
+            _ = try? await URLSession.shared.data(for: r)
+        }
+        return .result()
+    }
+}
+
+struct GirisIste: View {
+    var body: some View {
+        VStack(spacing: 6) {
+            Image(systemName: "person.crop.circle.badge.checkmark").font(.system(size: 26)).foregroundStyle(rzAltinGrad)
+            Text(L("giris")).font(.system(size: 12, weight: .semibold)).foregroundColor(.rzKrem).multilineTextAlignment(.center)
+        }.frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+struct NamazTakipView: View {
+    let e: RzEntry
+    var body: some View {
+        let (sira, _, _) = e.v.siradaki(e.date)
+        VStack(alignment: .leading, spacing: 6) {
+            RzUst(baslik: L("namaz_takip"), sag: e.o.seri > 0 ? "🔥 \(e.o.seri)" : "\(e.o.kilinan.intersection(NAMAZ5).count)/5")
+            if !e.o.giris { GirisIste() } else {
+                Spacer(minLength: 0)
+                HStack(spacing: 5) {
+                    ForEach(0..<5, id: \.self) { i in
+                        let kod = NAMAZ5[i]; let tamam = e.o.kilinan.contains(kod)
+                        let vi = [0, 2, 3, 4, 5][i]
+                        let gecti = !e.v.bos && e.v.saat[vi] <= e.date
+                        hucre(kod: kod, ad: L(NAMAZ5_AD[i]), saat: e.v.bos ? "" : saatYaz(e.v.saat[vi]), tamam: tamam, aktif: gecti && !tamam, sirada: !gecti && vi == sira)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+        }
+        .rzZemin()
+        .widgetURL(URL(string: SITE + "/namaz"))
+    }
+    @ViewBuilder func hucre(kod: String, ad: String, saat: String, tamam: Bool, aktif: Bool, sirada: Bool) -> some View {
+        let ic = VStack(spacing: 3) {
+            ZStack {
+                Circle().fill(tamam ? AnyShapeStyle(rzAltinGrad) : AnyShapeStyle(Color.rzKrem.opacity(aktif ? 0.16 : 0.07)))
+                    .overlay(Circle().stroke(sirada ? Color.rzPetrol : Color.rzAltin.opacity(aktif ? 0.7 : 0.25), lineWidth: sirada ? 1.6 : 1))
+                Image(systemName: tamam ? "checkmark" : (aktif ? "hand.tap" : "moon.stars")).font(.system(size: 12, weight: .bold))
+                    .foregroundColor(tamam ? Color(red: 0.1, green: 0.07, blue: 0.02) : .rzKrem.opacity(aktif ? 0.95 : 0.5))
+            }.frame(width: 32, height: 32)
+            Text(ad).font(.system(size: 9.5, weight: .semibold)).foregroundColor(tamam ? .rzAltinP : .rzKrem.opacity(0.8)).lineLimit(1).minimumScaleFactor(0.7)
+            Text(saat).font(.system(size: 9).monospacedDigit()).foregroundColor(.rzKrem.opacity(0.55))
+        }.frame(maxWidth: .infinity)
+        if #available(iOSApplicationExtension 17.0, *), aktif {
+            Button(intent: KildimIntent(vakit: kod)) { ic }.buttonStyle(.plain)
+        } else { ic }
+    }
+}
+struct NamazTakip: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "RavzaNamazTakip", provider: RzProvider()) { NamazTakipView(e: $0) }
+            .configurationDisplayName(L("namaz_takip")).description(L("namaz_takip_ac")).supportedFamilies([.systemMedium])
+    }
+}
+
+struct HedeflerView: View {
+    let e: RzEntry
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            RzUst(baslik: L("hedefler"))
+            if !e.o.giris { GirisIste() } else {
+                HStack(spacing: 10) {
+                    halka(Double(e.o.kilinan.intersection(NAMAZ5).count) / 5, "\(e.o.kilinan.intersection(NAMAZ5).count)/5", L("namaz"))
+                    halka(Double(e.o.zikirBugun) / Double(e.o.zikirHedef), sayi(e.o.zikirBugun), L("zikir"))
+                    halka(Double((e.o.sabah ? 1 : 0) + (e.o.aksam ? 1 : 0)) / 2, "\((e.o.sabah ? 1 : 0) + (e.o.aksam ? 1 : 0))/2", L("ezkar"))
+                }.frame(maxHeight: .infinity)
+            }
+        }
+        .rzZemin()
+        .widgetURL(URL(string: SITE + "/dashboard"))
+    }
+    func halka(_ o: Double, _ deger: String, _ ad: String) -> some View {
+        VStack(spacing: 4) {
+            ZStack {
+                Circle().stroke(Color.rzKrem.opacity(0.12), lineWidth: 6)
+                Circle().trim(from: 0, to: max(0.001, min(1, o)))
+                    .stroke(AngularGradient(colors: [.rzPetrol, .rzAltinP], center: .center), style: StrokeStyle(lineWidth: 6, lineCap: .round)).rotationEffect(.degrees(-90))
+                Text(deger).font(.system(size: 12, weight: .bold, design: .rounded).monospacedDigit()).foregroundColor(.rzKrem).lineLimit(1).minimumScaleFactor(0.6).padding(6)
+            }.frame(width: 62, height: 62)
+            Text(ad).font(.system(size: 10, weight: .semibold)).foregroundColor(.rzAltin)
+        }.frame(maxWidth: .infinity)
+    }
+}
+struct Hedefler: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "RavzaHedefler", provider: RzProvider()) { HedeflerView(e: $0) }
+            .configurationDisplayName(L("hedefler")).description(L("hedefler_ac")).supportedFamilies([.systemMedium])
+    }
+}
+
+struct HatimView: View {
+    let e: RzEntry
+    var body: some View {
+        let o = e.o.hatimToplam > 0 ? Double(e.o.hatimBiten) / Double(e.o.hatimToplam) : 0
+        VStack(spacing: 4) {
+            RzUst(baslik: L("hatim"))
+            if !e.o.giris { GirisIste() } else if e.o.hatimToplam == 0 {
+                Spacer(minLength: 0)
+                Text(L("hatim_yok")).font(.system(size: 11)).foregroundColor(.rzKrem.opacity(0.8)).multilineTextAlignment(.center)
+                Spacer(minLength: 0)
+            } else {
+                Spacer(minLength: 0)
+                ZStack {
+                    Circle().stroke(Color.rzKrem.opacity(0.12), lineWidth: 8)
+                    Circle().trim(from: 0, to: max(0.001, o)).stroke(AngularGradient(colors: [.rzPetrol, .rzAltinP], center: .center), style: StrokeStyle(lineWidth: 8, lineCap: .round)).rotationEffect(.degrees(-90))
+                    VStack(spacing: 0) {
+                        Text("\(e.o.hatimBiten)").font(.system(size: 22, weight: .bold, design: .serif)).foregroundStyle(rzAltinGrad)
+                        Text("/ \(e.o.hatimToplam)").font(.system(size: 9)).foregroundColor(.rzKrem.opacity(0.6))
+                    }
+                }.frame(width: 84, height: 84)
+                Text(e.o.hatimAd).font(.system(size: 9.5)).foregroundColor(.rzKrem.opacity(0.75)).lineLimit(1)
+                Spacer(minLength: 0)
+            }
+        }
+        .rzZemin()
+        .widgetURL(URL(string: SITE + "/hatimler"))
+    }
+}
+struct Hatim: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "RavzaHatim", provider: RzProvider()) { HatimView(e: $0) }
+            .configurationDisplayName(L("hatim")).description(L("hatim_ac")).supportedFamilies([.systemSmall])
+    }
+}
+
 @main
 struct RavzaWidgetPaketi: WidgetBundle {
     var body: some Widget {
         VakitPanel()
         VakitHalka()
+        NamazTakip()
+        Hedefler()
         Ayet()
         Esma()
         Hicri()
         Cuma()
         Kampanya()
         Oruc()
+        Hatim()
     }
 }

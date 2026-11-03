@@ -6,11 +6,19 @@ if proj.targets.any? { |t| t.name == 'RavzaWidgets' }
   puts 'RavzaWidgets zaten var'; exit 0
 end
 app = proj.targets.find { |t| t.name == 'App' }
+# 3 Kas: ana uygulamaya jeton köprüsü (RavzaWidgetJeton.swift) + ortak anahtar zinciri yetkisi
+ag = proj.main_group.find_subpath('App', false)
+unless ag.files.any? { |f| f.path == 'RavzaWidgetJeton.swift' }
+  app.add_file_references([ag.new_reference('RavzaWidgetJeton.swift')])
+end
+ag.new_reference('App.entitlements') unless ag.files.any? { |f| f.path == 'App.entitlements' }
+app.build_configurations.each { |c| c.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'App/App.entitlements' }
 ext = proj.new_target(:app_extension, 'RavzaWidgets', :ios, '16.0')
 grup = proj.main_group.find_subpath('RavzaWidgets', true)
 grup.set_source_tree('<group>'); grup.set_path('RavzaWidgets')
 kaynak = grup.new_reference('RavzaWidgets.swift')
 grup.new_reference('Info.plist')
+grup.new_reference('RavzaWidgets.entitlements')
 ext.add_file_references([kaynak])
 ext.add_system_framework(%w[WidgetKit SwiftUI])
 a = app.build_configurations.first.build_settings
@@ -29,6 +37,7 @@ ext.build_configurations.each do |c|
   s['APPLICATION_EXTENSION_API_ONLY'] = 'YES'
   s['LD_RUNPATH_SEARCH_PATHS'] = ['$(inherited)', '@executable_path/Frameworks', '@executable_path/../../Frameworks']
   s['DEVELOPMENT_LANGUAGE'] = 'tr'
+  s['CODE_SIGN_ENTITLEMENTS'] = 'RavzaWidgets/RavzaWidgets.entitlements'
   if ENV['WIDGET_PROFIL'] && !ENV['WIDGET_PROFIL'].empty?
     s['CODE_SIGN_STYLE'] = 'Manual'
     s['DEVELOPMENT_TEAM'] = ENV['TEAM_ID']
