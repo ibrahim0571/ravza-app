@@ -116,6 +116,10 @@ let SOZ: [String: [String]] = [
     "esma_ac": ["Esmâ-ül Hüsnâ'dan bir isim", "A Beautiful Name of Allah", "اسم من الأسماء الحسنى", "Ein schöner Name Allahs", "Un beau nom d'Allah", "Un bel nome di Allah", "Een schone naam van Allah", "Прекрасное имя Аллаха", "Navekî xweş ê Xwedê", "アッラーの美名", "安拉的尊名"],
     "hicri_ac": ["Hicrî tarih ve yaklaşan kandil", "Hijri date and the next blessed night", "التاريخ الهجري والليلة المباركة", "Hidschri-Datum und gesegnete Nacht", "Date hégirienne et nuit bénie", "Data dell'Egira e notte benedetta", "Hidjri-datum en gezegende nacht", "Дата хиджры и благословенная ночь", "Dîroka koçî û şeva pîroz", "ヒジュラ暦と祝福の夜", "伊历日期与吉夜"],
     "cuma_ac": ["Cumaya kalan gün ve sünnetleri", "Days to Friday and its sunnahs", "الأيام حتى الجمعة وسننها", "Tage bis Freitag und Sunna", "Jours avant vendredi et sunnas", "Giorni al venerdì e sunna", "Dagen tot vrijdag en soenna's", "Дни до пятницы и сунны", "Rojên heta înê û sunnet", "金曜日までとスンナ", "距主麻日与圣行"],
+    "zikirmatik": ["Zikirmatik", "Dhikr counter", "عداد الذكر", "Dhikr-Zähler", "Compteur de dhikr", "Contatore dhikr", "Dhikr-teller", "Счётчик зикра", "Zikirmatîk", "ズィクルカウンター", "赞念计数器"],
+    "zikirmatik_ac": ["Dokundukça say, kampanyaya katıl", "Tap to count and join the campaign", "اضغط للعدّ والمشاركة في الحملة", "Tippen zum Zählen, zur Kampagne beitragen", "Touchez pour compter et participer", "Tocca per contare e partecipare", "Tik om te tellen en mee te doen", "Нажимайте, чтобы считать и участвовать", "Bitikîne, bijmêre û beşdar bibe", "タップで数えてキャンペーンに参加", "点击计数并参与活动"],
+    "bugun_sen": ["Bugün sen", "You today", "أنت اليوم", "Du heute", "Vous aujourd'hui", "Tu oggi", "Jij vandaag", "Вы сегодня", "Îro tu", "今日のあなた", "你今天"],
+    "gonderiliyor": ["gönderiliyor", "sending", "يُرسل", "wird gesendet", "envoi", "invio", "verzenden", "отправка", "tê şandin", "送信中", "发送中"],
     "kampanya_ac": ["Ümmetin zikir kampanyası", "The Ummah's dhikr campaign", "حملة الذكر للأمة", "Dhikr-Kampagne der Umma", "Campagne de dhikr de l'Oumma", "Campagna di dhikr dell'Umma", "Dhikr-campagne van de oemma", "Кампания зикра уммы", "Kampanyaya zikirê", "ウンマのズィクル", "全体赞念活动"],
     "oruc_ac": ["İmsaktan iftara güneş yayı", "Sun arc from imsak to iftar", "قوس الشمس من الإمساك إلى الإفطار", "Sonnenbogen bis Iftar", "Arc solaire jusqu'à l'iftar", "Arco solare fino all'iftar", "Zonneboog tot iftar", "Дуга солнца до ифтара", "Kevana rojê heta fitarê", "イフタールまでの太陽の弧", "从封斋到开斋的日弧"],
     "giris": ["Ravza'da giriş yapın, kişisel bilgileriniz burada görünsün", "Sign in to Ravza to see your personal data here", "سجّل الدخول في روضة لتظهر بياناتك هنا", "In Ravza anmelden, um deine Daten zu sehen", "Connectez-vous à Ravza pour voir vos données", "Accedi a Ravza per vedere i tuoi dati", "Log in bij Ravza om je gegevens te zien", "Войдите в Ravza, чтобы видеть свои данные", "Têkevin Ravza, da daneyên te xuya bibin", "Ravzaにログインすると表示されます", "登录 Ravza 以显示个人数据"],
@@ -176,7 +180,7 @@ struct Ozet {
     var hadis = "", hadisKaynak = ""
     var esmaAr = "", esmaAd = "", esmaAnlam = "", esmaAdet = 0
     var kandil = "", kandilGun = -1
-    var kampId = "", kampBaslik = "", kampAr = "", kampToplam = 0, kampHedef = 0
+    var kampId = "", kampBaslik = "", kampAr = "", kampToplam = 0, kampHedef = 0, kampBenim = 0
     // Kişisel (jeton varsa): namaz, hedef, ezkâr, hatim
     var giris = false
     var kilinan: Set<String> = [], seri = 0
@@ -254,6 +258,7 @@ enum Veri {
         if let k = j["kampanya"] as? [String: Any] {
             o.kampId = k["id"] as? String ?? ""; o.kampBaslik = k["baslik"] as? String ?? ""; o.kampAr = k["arapca"] as? String ?? ""
             o.kampToplam = (k["toplam"] as? NSNumber)?.intValue ?? 0; o.kampHedef = (k["hedef"] as? NSNumber)?.intValue ?? 0
+            o.kampBenim = (k["benim_bugun"] as? NSNumber)?.intValue ?? 0
         }
         o.giris = (j["giris"] as? Bool) ?? false
         if let n = j["namaz"] as? [String: Any] { o.kilinan = Set((n["kilinan"] as? [String]) ?? []); o.seri = (n["seri"] as? NSNumber)?.intValue ?? 0 }
@@ -801,6 +806,124 @@ struct Hatim: Widget {
     }
 }
 
+// MARK: - Zikirmatik (5 Kas 2026, İbrahim: "widget'ta kampanya, Lâ ilâhe illallah vs yok, basılınca zikir saymıyor")
+// iOS 17+: kişi widget ayarlarından aktif kampanyalardan birini seçer (Lâ ilâhe illallah, Yâ Hayyu Yâ Kayyûm, Salavat…).
+// Her dokunuş +1: önce cihazda sayılır (anında görünür), birikenler toplu olarak /api/campaigns'e gider (request_id ile idempotent,
+// kota geçidi sunucuda). Ağ yoksa birikir, sonraki dokunuşta/yenilemede yollanır. Sayı uydurulmaz: gösterilen = sunucu + bekleyen.
+@available(iOSApplicationExtension 17.0, *)
+struct KampanyaSecim: AppEntity {
+    let id: String; let ad: String; let ar: String
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Kampanya"
+    var displayRepresentation: DisplayRepresentation { DisplayRepresentation(title: "\(ad)") }
+    static var defaultQuery = KampanyaSorgu()
+}
+@available(iOSApplicationExtension 17.0, *)
+struct KampanyaSorgu: EntityQuery {
+    func liste() async -> [KampanyaSecim] {
+        guard let j = await Veri.cek("/api/user/widget-ozet?liste=1&dil=" + DIL), let a = j["kampanyalar"] as? [[String: Any]] else { return [] }
+        return a.compactMap { k in (k["id"] as? String).map { KampanyaSecim(id: $0, ad: k["baslik"] as? String ?? "", ar: k["arapca"] as? String ?? "") } }
+    }
+    func entities(for identifiers: [String]) async throws -> [KampanyaSecim] { await liste().filter { identifiers.contains($0.id) } }
+    func suggestedEntities() async throws -> [KampanyaSecim] { await liste() }
+    func defaultResult() async -> KampanyaSecim? { await liste().first }
+}
+@available(iOSApplicationExtension 17.0, *)
+struct ZikirmatikAyar: WidgetConfigurationIntent {
+    static var title: LocalizedStringResource = "Zikirmatik"
+    @Parameter(title: "Kampanya") var kampanya: KampanyaSecim?
+}
+enum ZikirKuyruk {
+    static func anahtar(_ k: String) -> String { "zm_bekleyen_" + k }
+    static func bekleyen(_ k: String) -> Int { UserDefaults.standard.integer(forKey: anahtar(k)) }
+    static func ekle(_ k: String, _ n: Int) { UserDefaults.standard.set(bekleyen(k) + n, forKey: anahtar(k)) }
+    /// Bekleyenleri tek istekte gönderir. Başarılıysa sıfırlar, değilse bekletir (çift sayım yok: aynı request_id tekrar kullanılır).
+    static func gonder(_ k: String) async {
+        let n = bekleyen(k); guard n > 0, let j = RzJeton.oku(), let u = URL(string: SITE + "/api/campaigns") else { return }
+        let ridK = "zm_rid_" + k
+        let rid = UserDefaults.standard.string(forKey: ridK) ?? UUID().uuidString.lowercased()
+        UserDefaults.standard.set(rid, forKey: ridK)
+        var r = URLRequest(url: u, timeoutInterval: 10); r.httpMethod = "POST"
+        r.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        r.setValue("Bearer " + j, forHTTPHeaderField: "Authorization")
+        r.setValue("RavzaWidget/2.0 iOS", forHTTPHeaderField: "User-Agent")
+        r.httpBody = try? JSONSerialization.data(withJSONObject: ["campaign_id": k, "delta": n, "request_id": rid, "dil": DIL])
+        guard let (_, y) = try? await URLSession.shared.data(for: r), let kod = (y as? HTTPURLResponse)?.statusCode else { return }
+        if kod == 200 || kod == 207 || kod == 429 {   // 429 = günlük kota: bekleyen silinir (sunucu kabul etmedi, şişirme yok)
+            UserDefaults.standard.set(max(0, bekleyen(k) - n), forKey: anahtar(k))
+            UserDefaults.standard.removeObject(forKey: ridK)
+        }
+    }
+}
+@available(iOSApplicationExtension 17.0, *)
+struct ZikirSayIntent: AppIntent {
+    static var title: LocalizedStringResource = "Zikir say"
+    @Parameter(title: "Kampanya") var kampanya: String
+    init() {}
+    init(kampanya: String) { self.kampanya = kampanya }
+    func perform() async throws -> some IntentResult {
+        ZikirKuyruk.ekle(kampanya, 1)
+        if ZikirKuyruk.bekleyen(kampanya) >= 10 { await ZikirKuyruk.gonder(kampanya) }   // 10'da bir toplu gönderim
+        return .result()
+    }
+}
+struct ZmEntry: TimelineEntry { let date: Date; let id: String; let ad: String; let ar: String; let benim: Int; let toplam: Int; let hedef: Int; let giris: Bool }
+@available(iOSApplicationExtension 17.0, *)
+struct ZmProvider: AppIntentTimelineProvider {
+    func placeholder(in context: Context) -> ZmEntry { ZmEntry(date: Date(), id: "", ad: "10 Milyon Lâ ilâhe illallah", ar: "لَا إِلٰهَ إِلَّا اللّٰهُ", benim: 33, toplam: 1_203_306, hedef: 10_000_000, giris: true) }
+    func snapshot(for c: ZikirmatikAyar, in context: Context) async -> ZmEntry { context.isPreview ? placeholder(in: context) : await girdi(c) }
+    func timeline(for c: ZikirmatikAyar, in context: Context) async -> Timeline<ZmEntry> {
+        Timeline(entries: [await girdi(c)], policy: .after(Date().addingTimeInterval(1800)))
+    }
+    func girdi(_ c: ZikirmatikAyar) async -> ZmEntry {
+        let secili = c.kampanya?.id ?? ""
+        if !secili.isEmpty { await ZikirKuyruk.gonder(secili) }   // yenilemede bekleyenleri yolla
+        let j = await Veri.cek("/api/user/widget-ozet?dil=" + DIL + (secili.isEmpty ? "" : "&kampanya=" + secili))
+        let k = (j?["kampanya"] as? [String: Any]) ?? [:]
+        let id = k["id"] as? String ?? secili
+        return ZmEntry(date: Date(), id: id, ad: k["baslik"] as? String ?? (c.kampanya?.ad ?? ""), ar: k["arapca"] as? String ?? (c.kampanya?.ar ?? ""),
+                       benim: (k["benim_bugun"] as? NSNumber)?.intValue ?? 0, toplam: (k["toplam"] as? NSNumber)?.intValue ?? 0,
+                       hedef: (k["hedef"] as? NSNumber)?.intValue ?? 0, giris: (j?["giris"] as? Bool) ?? false)
+    }
+}
+@available(iOSApplicationExtension 17.0, *)
+struct ZikirmatikView: View {
+    let e: ZmEntry
+    var body: some View {
+        let bek = e.id.isEmpty ? 0 : ZikirKuyruk.bekleyen(e.id)
+        VStack(alignment: .leading, spacing: 4) {
+            RzUst(baslik: L("zikirmatik"), sag: e.ad)
+            if !e.giris { GirisIste() } else {
+                HStack(alignment: .center, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(e.ar).font(.system(size: 18)).foregroundStyle(rzAltinGrad).lineLimit(1).minimumScaleFactor(0.5)
+                        Text(L("bugun_sen")).font(.system(size: 10)).foregroundColor(.rzKrem.opacity(0.65))
+                        Text(sayi(e.benim + bek)).font(.system(size: 26, weight: .bold, design: .rounded).monospacedDigit()).foregroundStyle(rzAltinGrad)
+                            .contentTransition(.numericText()).lineLimit(1).minimumScaleFactor(0.6)
+                        if bek > 0 { Text("+\(bek) " + L("gonderiliyor")).font(.system(size: 9)).foregroundColor(.rzKrem.opacity(0.55)) }
+                    }
+                    Spacer(minLength: 0)
+                    Button(intent: ZikirSayIntent(kampanya: e.id)) {
+                        ZStack {
+                            Circle().fill(rzAltinGrad)
+                            Image(systemName: "hand.tap.fill").font(.system(size: 26, weight: .bold)).foregroundColor(Color(red: 0.1, green: 0.07, blue: 0.02))
+                        }.frame(width: 76, height: 76)
+                    }.buttonStyle(.plain).disabled(e.id.isEmpty)
+                }
+                Text(L("ummet") + ": " + sayi(e.toplam) + (e.hedef > 0 ? " / " + sayi(e.hedef) : "")).font(.system(size: 9.5)).foregroundColor(.rzKrem.opacity(0.6)).lineLimit(1)
+            }
+        }
+        .rzZemin()
+        .widgetURL(URL(string: SITE + "/kampanya"))
+    }
+}
+@available(iOSApplicationExtension 17.0, *)
+struct Zikirmatik: Widget {
+    var body: some WidgetConfiguration {
+        AppIntentConfiguration(kind: "RavzaZikirmatik", intent: ZikirmatikAyar.self, provider: ZmProvider()) { ZikirmatikView(e: $0) }
+            .configurationDisplayName(L("zikirmatik")).description(L("zikirmatik_ac")).supportedFamilies([.systemMedium])
+    }
+}
+
 @main
 struct RavzaWidgetPaketi: WidgetBundle {
     var body: some Widget {
@@ -813,6 +936,7 @@ struct RavzaWidgetPaketi: WidgetBundle {
         Hicri()
         Cuma()
         Kampanya()
+        if #available(iOSApplicationExtension 17.0, *) { Zikirmatik() }
         Oruc()
         Hatim()
     }
