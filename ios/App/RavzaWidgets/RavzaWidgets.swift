@@ -131,6 +131,15 @@ let SOZ: [String: [String]] = [
     "zikir": ["Zikir", "Dhikr", "الذكر", "Dhikr", "Dhikr", "Dhikr", "Dhikr", "Зикр", "Zikir", "ズィクル", "赞念"],
     "ezkar": ["Ezkâr", "Adhkar", "الأذكار", "Adhkar", "Adhkar", "Adhkar", "Adhkar", "Азкары", "Ezkar", "アズカール", "记念"],
     "hatim": ["Hatim", "Khatm", "الختمة", "Khatm", "Khatm", "Khatm", "Khatm", "Хатм", "Xetm", "ハトム", "通读"],
+    "yuzuk": ["Akıllı Yüzük", "Smart Ring", "الخاتم الذكي", "Smart Ring", "Bague connectée", "Anello smart", "Slimme ring", "Умное кольцо", "Gustîlka zîrek", "スマートリング", "智能戒指"],
+    "yuzuk_ac": ["Yüzükten bugünkü zikir, pil ve son eşitleme", "Today's ring count, battery and last sync", "عدّ الخاتم اليوم والبطارية وآخر مزامنة", "Heutige Ring-Zählung, Akku und letzte Synchronisierung", "Compte de la bague, batterie et dernière synchro", "Conteggio dell'anello, batteria e ultima sincronizzazione", "Ringtelling van vandaag, batterij en laatste sync", "Счёт кольца за сегодня, батарея и последняя синхронизация", "Hejmara gustîlkê ya îro, pîl û hevdemkirina dawî", "今日のリングのカウント、電池、最終同期", "今日戒指计数、电量和最近同步"],
+    "y_yok": ["Yüzük eşleştir", "Pair a ring", "اربط خاتمًا", "Ring koppeln", "Associer une bague", "Associa un anello", "Ring koppelen", "Подключить кольцо", "Gustîlkê girê bide", "リングをペアリング", "配对戒指"],
+    "y_yok_ac": ["Dokun, cihaz merkezini aç", "Tap to open Device Center", "اضغط لفتح مركز الأجهزة", "Tippen: Gerätezentrum", "Touchez : centre des appareils", "Tocca: centro dispositivi", "Tik: apparaatcentrum", "Нажмите: центр устройств", "Bitikîne: navenda cîhazan", "タップしてデバイスセンター", "点击打开设备中心"],
+    "y_bugun": ["Yüzükten bugün", "From ring today", "من الخاتم اليوم", "Heute vom Ring", "De la bague aujourd'hui", "Dall'anello oggi", "Vandaag via ring", "С кольца сегодня", "Îro ji gustîlkê", "今日のリング", "今日戒指计数"],
+    "y_pil": ["Pil", "Battery", "البطارية", "Akku", "Batterie", "Batteria", "Batterij", "Батарея", "Pîl", "電池", "电量"],
+    "y_esitle": ["Eşitle", "Sync", "مزامنة", "Sync", "Synchro", "Sincronizza", "Sync", "Синхр.", "Hevdem bike", "同期", "同步"],
+    "y_aktif": ["Aktif", "Active", "نشط", "Aktiv", "Actif", "Attivo", "Actief", "Активно", "Çalak", "稼働中", "活跃"],
+    "y_son": ["Son eşitleme", "Last sync", "آخر مزامنة", "Zuletzt synchronisiert", "Dernière synchro", "Ultima sincronizzazione", "Laatste sync", "Последняя синхр.", "Hevdemkirina dawî", "最終同期", "最近同步"],
     "hatim_ac": ["Hatim ilerlemen", "Your khatm progress", "تقدّم ختمتك", "Dein Khatm-Fortschritt", "Progression du khatm", "Progresso del khatm", "Je khatm-voortgang", "Прогресс хатма", "Pêşketina xetmê", "ハトムの進み具合", "通读进度"],
     "hatim_yok": ["Aktif hatmin yok. Ravza'da bir hatim başlat.", "No active khatm. Start one in Ravza.", "لا توجد ختمة نشطة، ابدأ واحدة في روضة.", "Kein aktives Khatm. Starte eines in Ravza.", "Aucun khatm actif. Commencez-en un dans Ravza.", "Nessun khatm attivo. Iniziane uno in Ravza.", "Geen actieve khatm. Start er een in Ravza.", "Нет активного хатма. Начните в Ravza.", "Xetma çalak tune. Di Ravza de dest pê bike.", "進行中のハトムはありません", "暂无进行中的通读"],
     "kilit": ["Kilit ekranı vakti", "Lock screen prayer", "وقت شاشة القفل", "Sperrbildschirm-Gebet", "Prière écran verrouillé", "Preghiera schermata blocco", "Gebed op vergrendelscherm", "Намаз на экране блокировки", "Nimêja ekrana kilîtkirî", "ロック画面の礼拝", "锁屏礼拜"],
@@ -187,6 +196,9 @@ struct Ozet {
     var zikirBugun = 0, zikirHedef = 1000
     var sabah = false, aksam = false
     var hatimAd = "", hatimToplam = 0, hatimBiten = 0
+    // Akıllı yüzük (6 Kas): sunucudaki son kayıt. Canlı BLE durumu widget'tan okunamaz.
+    var yuzukVar = false, yuzukAd = "", yuzukBugun = 0, yuzukPil = -1
+    var yuzukSon: Date? = nil
 }
 
 /// Uygulamanın ortak anahtar zincirine bıraktığı widget jetonu (RavzaWidgetJeton.swift ile aynı grup).
@@ -265,6 +277,13 @@ enum Veri {
         if let h = j["hedef"] as? [String: Any] { o.zikirBugun = (h["zikir_bugun"] as? NSNumber)?.intValue ?? 0; o.zikirHedef = max(1, (h["zikir_hedef"] as? NSNumber)?.intValue ?? 1000) }
         if let e = j["ezkar"] as? [String: Any] { o.sabah = ((e["sabah"] as? [String: Any])?["tamam"] as? Bool) ?? false; o.aksam = ((e["aksam"] as? [String: Any])?["tamam"] as? Bool) ?? false }
         if let h = j["hatim"] as? [String: Any] { o.hatimAd = h["ad"] as? String ?? ""; o.hatimToplam = (h["toplam"] as? NSNumber)?.intValue ?? 0; o.hatimBiten = (h["tamamlanan"] as? NSNumber)?.intValue ?? 0 }
+        if let y = j["yuzuk"] as? [String: Any] {
+            o.yuzukVar = (y["var"] as? Bool) ?? false
+            o.yuzukAd = y["ad"] as? String ?? ""
+            o.yuzukBugun = (y["bugun"] as? NSNumber)?.intValue ?? 0
+            o.yuzukPil = (y["pil"] as? NSNumber)?.intValue ?? -1
+            if let t = y["son_paket"] as? String { o.yuzukSon = tarihCoz(t) }
+        }
         // Bu cihazdan bugün işaretlenenler (sunucu henüz dönmediyse de görünsün)
         let yerel = UserDefaults.standard.stringArray(forKey: "kildim_" + gunAnahtar()) ?? []
         o.kilinan.formUnion(yerel)
@@ -316,6 +335,7 @@ struct RzProvider: TimelineProvider {
         o.kandil = DIL == "tr" ? "Regaib Kandili" : "Raghaib Night"; o.kandilGun = 37
         o.hadis = DIL == "tr" ? "Ameller ancak niyetlere göredir." : "Actions are only by intentions."; o.hadisKaynak = "Buhârî, 1"
         o.kampBaslik = "10 Milyon La ilahe illallah"; o.kampAr = "لَا إِلٰهَ إِلَّا اللّٰهُ"; o.kampToplam = 1_171_947; o.kampHedef = 10_000_000
+        o.giris = true; o.yuzukVar = true; o.yuzukAd = "iQibla"; o.yuzukBugun = 232; o.yuzukPil = 64; o.yuzukSon = Date().addingTimeInterval(-300)
         return o
     }
 }
@@ -771,6 +791,104 @@ struct Hedefler: Widget {
     }
 }
 
+// MARK: - 18 · Akıllı Yüzük (6 Kas, Android Yuzuk karşılığı)
+func tarihCoz(_ t: String) -> Date? {
+    let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    if let d = f.date(from: t) { return d }
+    f.formatOptions = [.withInternetDateTime]
+    if let d = f.date(from: t) { return d }
+    // Postgres biçimi: "2026-11-06 10:34:57.571172+00"
+    let g = DateFormatter(); g.locale = Locale(identifier: "en_US_POSIX")
+    for b in ["yyyy-MM-dd HH:mm:ss.SSSSSSxxx", "yyyy-MM-dd HH:mm:ss.SSSSSSx", "yyyy-MM-dd HH:mm:ssx", "yyyy-MM-dd'T'HH:mm:ss.SSSSSSxxx"] {
+        g.dateFormat = b
+        if let d = g.date(from: t) { return d }
+    }
+    return nil
+}
+func gorece(_ d: Date, _ simdi: Date) -> String {
+    let f = RelativeDateTimeFormatter(); f.unitsStyle = .short
+    f.locale = Locale(identifier: DIL == "ku" ? "tr" : DIL)
+    return f.localizedString(for: d, relativeTo: simdi)
+}
+struct YuzukView: View {
+    let e: RzEntry
+    var body: some View {
+        let o = e.o
+        // Son 10 dk içinde paket geldiyse "Aktif" (yeşil), değilse son eşitleme zamanı. Widget canlı Bluetooth göremez.
+        let aktif = o.yuzukSon.map { e.date.timeIntervalSince($0) < 600 } ?? false
+        VStack(alignment: .leading, spacing: 4) {
+            RzUst(baslik: L("yuzuk"))
+            if !o.giris { GirisIste() } else if !o.yuzukVar {
+                Spacer(minLength: 0)
+                HStack { Spacer(); YuzukSimge(bagli: false).frame(width: 40, height: 40); Spacer() }
+                Text(L("y_yok")).font(.system(size: 13, weight: .semibold, design: .serif)).foregroundColor(.rzAltin).frame(maxWidth: .infinity)
+                Text(L("y_yok_ac")).font(.system(size: 9.5)).foregroundColor(.rzKrem.opacity(0.7)).multilineTextAlignment(.center).lineLimit(2).frame(maxWidth: .infinity)
+                Spacer(minLength: 0)
+            } else {
+                HStack(spacing: 8) {
+                    YuzukSimge(bagli: aktif).frame(width: 36, height: 36)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(o.yuzukAd.isEmpty ? "iQibla" : o.yuzukAd).font(.system(size: 12, weight: .bold)).foregroundColor(.rzKrem).lineLimit(1).minimumScaleFactor(0.8)
+                        HStack(spacing: 4) {
+                            Circle().fill(aktif ? Color(red: 0.31, green: 0.82, blue: 0.65) : Color.rzAltin).frame(width: 6, height: 6)
+                            Text(aktif ? L("y_aktif") : (o.yuzukSon.map { gorece($0, e.date) } ?? "—"))
+                                .font(.system(size: 9.5)).foregroundColor(.rzKrem.opacity(0.7)).lineLimit(1).minimumScaleFactor(0.7)
+                        }
+                    }
+                }
+                Spacer(minLength: 0)
+                Text(L("y_bugun")).font(.system(size: 9.5)).foregroundColor(.rzKrem.opacity(0.7)).lineLimit(1)
+                Text(sayi(o.yuzukBugun)).font(.system(size: 26, weight: .bold)).foregroundStyle(rzAltinGrad).lineLimit(1).minimumScaleFactor(0.6)
+                Spacer(minLength: 0)
+                HStack(alignment: .bottom, spacing: 6) {
+                    if o.yuzukPil >= 0 {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("\(L("y_pil")) %\(o.yuzukPil)").font(.system(size: 9)).foregroundColor(.rzKrem.opacity(0.7)).lineLimit(1)
+                            GeometryReader { g in
+                                ZStack(alignment: .leading) {
+                                    Capsule().fill(Color.rzKrem.opacity(0.15))
+                                    Capsule().fill(o.yuzukPil <= 20 ? Color(red: 0.88, green: 0.54, blue: 0.42) : Color.rzPetrol)
+                                        .frame(width: g.size.width * CGFloat(max(0.04, min(1.0, Double(o.yuzukPil) / 100.0))))
+                                }
+                            }.frame(height: 5)
+                        }
+                    }
+                    Spacer(minLength: 0)
+                    Text(L("y_esitle")).font(.system(size: 10, weight: .bold)).foregroundColor(Color(red: 0.10, green: 0.07, blue: 0.02))
+                        .padding(.horizontal, 10).padding(.vertical, 4)
+                        .background(Capsule().fill(LinearGradient(colors: [.rzAltinP, .rzAltinK], startPoint: .top, endPoint: .bottom)))
+                        .lineLimit(1).minimumScaleFactor(0.7)
+                }
+            }
+        }
+        .rzZemin()
+        .widgetURL(URL(string: SITE + "/cihaz-merkezi"))
+    }
+}
+/// Altın halka + taş (bağlıysa petrol rengi parlak taş). Android YuzukSimgesi ile aynı.
+struct YuzukSimge: View {
+    let bagli: Bool
+    var body: some View {
+        GeometryReader { g in
+            let r = min(g.size.width, g.size.height) / 2
+            ZStack {
+                Circle().stroke(LinearGradient(colors: [Color(red: 1, green: 0.95, blue: 0.77), .rzAltin, .rzAltinK], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: r * 0.32)
+                    .frame(width: r * 1.7, height: r * 1.7)
+                Circle().fill(RadialGradient(colors: bagli ? [Color(red: 0.5, green: 0.94, blue: 0.91), .rzPetrol] : [Color(red: 0.72, green: 0.78, blue: 0.76), Color(red: 0.33, green: 0.38, blue: 0.37)], center: .topLeading, startRadius: 0, endRadius: r * 0.5))
+                    .frame(width: r * 0.62, height: r * 0.62)
+                    .shadow(color: bagli ? Color.rzPetrol.opacity(0.8) : .clear, radius: bagli ? 4 : 0)
+                    .offset(y: -r * 0.85)
+            }.frame(width: g.size.width, height: g.size.height)
+        }
+    }
+}
+struct Yuzuk: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "RavzaYuzuk", provider: RzProvider()) { YuzukView(e: $0) }
+            .configurationDisplayName(L("yuzuk")).description(L("yuzuk_ac")).supportedFamilies([.systemSmall])
+    }
+}
+
 struct HatimView: View {
     let e: RzEntry
     var body: some View {
@@ -939,5 +1057,6 @@ struct RavzaWidgetPaketi: WidgetBundle {
         if #available(iOSApplicationExtension 17.0, *) { Zikirmatik() }
         Oruc()
         Hatim()
+        Yuzuk()
     }
 }

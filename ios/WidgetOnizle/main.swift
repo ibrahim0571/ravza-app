@@ -29,6 +29,12 @@ import AppKit
     ciz(NamazTakipView(e: e), 338, 158, "11_namaz")
     ciz(HedeflerView(e: e), 338, 158, "12_hedefler")
     ciz(HatimView(e: e), 158, 158, "13_hatim")
+    // 6 Kas: Akıllı Yüzük (bağlı · kopuk · eşleşmemiş)
+    ciz(YuzukView(e: e), 158, 158, "14_yuzuk_aktif")
+    var o2 = oz; o2.yuzukSon = Date().addingTimeInterval(-7200); o2.yuzukPil = 3
+    ciz(YuzukView(e: RzEntry(date: Date(), v: p.ornekVakit(), o: o2)), 158, 158, "15_yuzuk_eski")
+    var o3 = oz; o3.yuzukVar = false
+    ciz(YuzukView(e: RzEntry(date: Date(), v: p.ornekVakit(), o: o3)), 158, 158, "16_yuzuk_yok")
 }
 try? FileManager.default.createDirectory(atPath: "cikti", withIntermediateDirectories: true)
 MainActor.assumeIsolated { calis() }
