@@ -6,6 +6,7 @@ import WidgetKit
 import SwiftUI
 import Security
 import AppIntents
+import CoreLocation
 
 // MARK: - Renk ve yardımcılar
 extension Color {
@@ -171,6 +172,8 @@ struct Vakitler {
     var saat: [Date] = []      // 6 vakit, bugün
     var yarinImsak: Date? = nil
     var hicriGun = "", hicriAy = "", hicriAyAr = "", hicriYil = "", hicriAyNo = 0
+    /// 10 Kas (İbrahim): widget'ta bulunulan yerin adı (mahalle/ilçe/il). Gelmezse son bilinen ad kalır.
+    var yerAd = ""
     var bos: Bool { saat.count < 6 }
     /// (sıradaki vakit indeksi, hedef zaman, önceki vakit zamanı)
     func siradaki(_ simdi: Date) -> (Int, Date, Date) {
@@ -215,7 +218,8 @@ enum RzJeton {
 
 enum Veri {
     static let paylasim = UserDefaults.standard
-    static func cek(_ yol: String) async -> [String: Any]? {
+    static func cek(_ yol: String, anahtar: String? = nil) async -> [String: Any]? {
+        let ak = anahtar ?? yol
         guard let u = URL(string: SITE + yol) else { return nil }
         var r = URLRequest(url: u, timeoutInterval: 12)
         r.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -223,13 +227,13 @@ enum Veri {
         if let j = RzJeton.oku() { r.setValue("Bearer " + j, forHTTPHeaderField: "Authorization") }
         do {
             let (d, y) = try await URLSession.shared.data(for: r)
-            guard (y as? HTTPURLResponse)?.statusCode == 200 else { return onbellek(yol) }
+            guard (y as? HTTPURLResponse)?.statusCode == 200 else { return onbellek(ak) }
             let j = try JSONSerialization.jsonObject(with: d) as? [String: Any]
-            if let j = j { paylasim.set(d, forKey: "onbellek_" + yol) }
+            if let j = j { paylasim.set(d, forKey: "onbellek_" + ak) }
             return j
         } catch {
             // Çevrimdışı: son başarılı cevap
-            return onbellek(yol)
+            return onbellek(ak)
         }
     }
     static func onbellek(_ yol: String) -> [String: Any]? {
@@ -237,9 +241,25 @@ enum Veri {
         return try? JSONSerialization.jsonObject(with: d) as? [String: Any]
     }
 
+    /// 10 Kas: telefonun son bilinen konumu (NSWidgetWantsLocation). İzin yoksa nil → sunucu üyenin son konumunu kullanır.
+    /// ~1 km'ye yuvarlanır: aynı yerde durunca istek ve yer adı değişmez.
+    static func konum() -> (Double, Double)? {
+        let m = CLLocationManager()
+        guard m.isAuthorizedForWidgetUpdates, let l = m.location else { return nil }
+        let r = { (x: Double) -> Double in (x * 100).rounded() / 100 }
+        return (r(l.coordinate.latitude), r(l.coordinate.longitude))
+    }
+
     static func vakitler() async -> Vakitler {
         var v = Vakitler()
-        guard let j = await cek("/api/namaz-vakitleri"), let t = j["timings"] as? [String: Any] else { return v }
+        var yol = "/api/namaz-vakitleri?yer=1&dil=" + DIL
+        if let (la, lo) = konum() {
+            yol += "&lat=\(la)&lon=\(lo)&tz=" + (TimeZone.current.identifier.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")
+        }
+        guard let j = await cek(yol, anahtar: "/api/namaz-vakitleri"), let t = j["timings"] as? [String: Any] else { return v }
+        if let y = j["yer"] as? [String: Any], let ad = y["ad"] as? String, !ad.isEmpty {
+            v.yerAd = ad; paylasim.set(ad, forKey: "yer_ad")
+        } else { v.yerAd = paylasim.string(forKey: "yer_ad") ?? "" }
         let tak = Calendar.current
         let bugun = tak.startOfDay(for: Date())
         for k in VAKIT_ANAHTAR {
@@ -347,7 +367,7 @@ struct VakitPanelView: View {
     var body: some View {
         let (i, hedef, _) = e.v.siradaki(e.date)
         VStack(alignment: .leading, spacing: aile == .systemSmall ? 4 : 2) {
-            RzUst(baslik: "Ravza", sag: aile == .systemSmall ? "" : "\(e.v.hicriGun) \(e.v.hicriAy) \(e.v.hicriYil)")
+            RzUst(baslik: e.v.yerAd.isEmpty ? "Ravza" : e.v.yerAd, sag: aile == .systemSmall ? "" : "\(e.v.hicriGun) \(e.v.hicriAy) \(e.v.hicriYil)")
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(L(VAKIT_AD[i])).font(.system(size: aile == .systemSmall ? 14 : 16, weight: .bold, design: .serif)).foregroundColor(.rzAltin)
                 if aile != .systemSmall { Text(VAKIT_AR[i]).font(.system(size: 14)).foregroundColor(.rzKrem.opacity(0.7)) }
