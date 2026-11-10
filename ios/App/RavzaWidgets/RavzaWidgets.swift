@@ -830,6 +830,43 @@ func gorece(_ d: Date, _ simdi: Date) -> String {
     f.locale = Locale(identifier: DIL == "ku" ? "tr" : DIL)
     return f.localizedString(for: d, relativeTo: simdi)
 }
+/// 10 Kas (İbrahim: "widget hem kilit ekranında hem normal ekranda olsun"): kilit ekranı aileleri.
+/// Widget Bluetooth'u okuyamaz; sunucudaki son değer + son eşitleme zamanı gösterilir (eskiyse göreli süre görünür).
+struct YuzukKilitView: View {
+    @Environment(\.widgetFamily) var aile
+    let e: RzEntry
+    var body: some View {
+        let o = e.o
+        switch aile {
+        case .accessoryCircular:
+            ZStack {
+                AccessoryWidgetBackground()
+                VStack(spacing: 0) {
+                    Image(systemName: "circle.circle").font(.system(size: 10, weight: .semibold))
+                    Text(kisaSayi(o.yuzukBugun)).font(.system(size: 15, weight: .bold).monospacedDigit()).minimumScaleFactor(0.6).lineLimit(1)
+                }
+            }
+            .widgetURL(URL(string: SITE + "/cihaz-merkezi"))
+        case .accessoryRectangular:
+            VStack(alignment: .leading, spacing: 1) {
+                Text(L("y_bugun")).font(.system(size: 12, weight: .semibold)).lineLimit(1)
+                Text(sayi(o.yuzukBugun)).font(.system(size: 20, weight: .bold).monospacedDigit()).lineLimit(1).minimumScaleFactor(0.6)
+                if let s = o.yuzukSon { Text(gorece(s, e.date)).font(.system(size: 11)).lineLimit(1).minimumScaleFactor(0.7) }
+            }
+            .widgetURL(URL(string: SITE + "/cihaz-merkezi"))
+        case .accessoryInline:
+            Text("\(L("yuzuk")) \(sayi(o.yuzukBugun))")
+        default:
+            YuzukView(e: e)
+        }
+    }
+}
+func kisaSayi(_ n: Int) -> String {
+    if n >= 100_000 { return "\(n / 1000)B" }
+    if n >= 10_000 { return String(format: "%.1fB", Double(n) / 1000).replacingOccurrences(of: ".0B", with: "B") }
+    return sayi(n)
+}
+
 struct YuzukView: View {
     let e: RzEntry
     var body: some View {
@@ -904,8 +941,9 @@ struct YuzukSimge: View {
 }
 struct Yuzuk: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "RavzaYuzuk", provider: RzProvider()) { YuzukView(e: $0) }
-            .configurationDisplayName(L("yuzuk")).description(L("yuzuk_ac")).supportedFamilies([.systemSmall])
+        StaticConfiguration(kind: "RavzaYuzuk", provider: RzProvider()) { YuzukKilitView(e: $0) }
+            .configurationDisplayName(L("yuzuk")).description(L("yuzuk_ac"))
+            .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
 
