@@ -7,6 +7,7 @@ import SwiftUI
 import Security
 import AppIntents
 import CoreLocation
+import UserNotifications
 
 // MARK: - Renk ve yardımcılar
 extension Color {
@@ -318,6 +319,39 @@ struct RzEntry: TimelineEntry {
     let o: Ozet
 }
 
+/// 26 Kas (#8389, İbrahim "ezan vaktinde iPhone'da titreşim/bildirim gelmedi"): sunucu push'u iOS'ta APNs jetonu olmadan
+/// hiç ulaşmıyordu. Widget vakitleri zaten biliyor → önümüzdeki 5 vakte (güneş hariç) yerel bildirim kurar.
+/// Ses = varsayılan (titreşim telefon ayarına göre), kilit ekranında görünür. Her yenilemede eskiler
+/// silinip yeniden kurulur (vakit/konum değişse de doğru kalır). İzin ana uygulamada verilmiş olmalı; yoksa sessizce geçer.
+enum EzanYerel {
+    static func kur(_ v: Vakitler) {
+        guard v.saat.count == 6 else { return }
+        let m = UNUserNotificationCenter.current()
+        m.getNotificationSettings { a in
+            guard a.authorizationStatus == .authorized || a.authorizationStatus == .provisional || a.authorizationStatus == .ephemeral else { return }
+            let kimlikler = (0..<10).map { "ravza.ezan.\($0)" }
+            m.removePendingNotificationRequests(withIdentifiers: kimlikler)
+            let simdi = Date(); var sira = 0
+            let ar = ["الفجر", "الشروق", "الظهر", "العصر", "المغرب", "العشاء"]
+            for gun in 0...1 {
+                for i in [0, 2, 3, 4, 5] {
+                    let t = v.saat[i].addingTimeInterval(Double(gun) * 86400)
+                    guard t > simdi.addingTimeInterval(30), sira < 10 else { continue }
+                    let c = UNMutableNotificationContent()
+                    let f = DateFormatter(); f.dateFormat = "HH:mm"
+                    c.title = "🕌 " + L(VAKIT_AD[i]) + " · " + f.string(from: t)
+                    c.body = ar[i] + (v.yerAd.isEmpty ? "" : " · " + v.yerAd)
+                    c.sound = .default
+                    c.userInfo = ["url": SITE + "/ezan-vakti"]
+                    let bil = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: t)
+                    m.add(UNNotificationRequest(identifier: "ravza.ezan.\(sira)", content: c, trigger: UNCalendarNotificationTrigger(dateMatching: bil, repeats: false)))
+                    sira += 1
+                }
+            }
+        }
+    }
+}
+
 struct RzProvider: TimelineProvider {
     func placeholder(in context: Context) -> RzEntry { RzEntry(date: Date(), v: ornekVakit(), o: ornekOzet()) }
     func getSnapshot(in context: Context, completion: @escaping (RzEntry) -> Void) {
@@ -328,6 +362,7 @@ struct RzProvider: TimelineProvider {
         Task {
             let v = await Veri.vakitler()
             let o = await Veri.ozet()
+            EzanYerel.kur(v)   // 26 Kas (#8389): ezan vaktinde sesli + titreşimli yerel bildirim (sunucuya bağlı değil)
             let simdi = Date()
             // Her vakit girişinde yeni giriş: sıradaki vakit ve geri sayım hedefi değişir. Geri sayım Text(.timer) ile canlı.
             var girdiler = [RzEntry(date: simdi, v: v, o: o)]

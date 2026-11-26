@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import UserNotifications
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -7,7 +8,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // 26 Kas (#8389): ezan yerel bildirimleri (widget kurar) ve APNs için izin: ses + uyarı + rozet.
+        // Kullanıcı zaten karar verdiyse sistem tekrar sormaz. Zaman duyarlı (time-sensitive) yetki entitlements'ta.
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { izin, _ in
+            if izin { DispatchQueue.main.async { application.registerForRemoteNotifications() } }
+        }
         return true
     }
 
