@@ -77,7 +77,7 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Ravza, profil fotoğrafınızı seçmeniz için fotoğraf kitaplığına erişir.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Ravza, ürün barkodlarını okutarak helal içerik sorgulamanız, profil fotoğrafı çekmeniz ve QR kod okutmanız için kamerayı kullanır.</string>
+	<string>Ravza, kamerada Kâbe yönünü (kıble) göstermek, ürün barkodlarını okutarak helal içerik sorgulamanız, profil fotoğrafı çekmeniz ve QR kod okutmanız için kamerayı kullanır. Görüntü cihazdan çıkmaz.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Ravza, hesabınıza güvenli ve hızlı giriş yapmanız için Face ID kullanır.</string>
 
