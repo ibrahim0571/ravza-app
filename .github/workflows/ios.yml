@@ -50,6 +50,9 @@ jobs:
           mkdir -p www
           [ -f www/index.html ] || echo '<!doctype html><meta http-equiv="refresh" content="0;url=https://tesbihat.ibrahimaktas.com">' > www/index.html
 
+      - name: BLE iOS yamasi (yuzuk cokmesi #8224, upstream 8.4.0 Swift)
+        run: bash yama/ble_ios_yama.sh
+
       - name: Capacitor sync
         run: npx cap sync ios
 
