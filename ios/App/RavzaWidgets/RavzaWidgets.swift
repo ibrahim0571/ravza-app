@@ -341,7 +341,8 @@ enum EzanYerel {
                     let f = DateFormatter(); f.dateFormat = "HH:mm"
                     c.title = "🕌 " + L(VAKIT_AD[i]) + " · " + f.string(from: t)
                     c.body = ar[i] + (v.yerAd.isEmpty ? "" : " · " + v.yerAd)
-                    c.sound = .default
+                    // 26 Kas: Ravza Klasik zili (uygulama paketindeki zil_klasik.caf; yoksa iOS varsayılan sesi çalar)
+                    c.sound = UNNotificationSound(named: UNNotificationSoundName("zil_klasik.caf"))
                     c.userInfo = ["url": SITE + "/ezan-vakti"]
                     let bil = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: t)
                     m.add(UNNotificationRequest(identifier: "ravza.ezan.\(sira)", content: c, trigger: UNCalendarNotificationTrigger(dateMatching: bil, repeats: false)))

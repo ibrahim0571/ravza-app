@@ -64,6 +64,7 @@ jobs:
         run: |
           gem list xcodeproj | grep -q xcodeproj || sudo gem install xcodeproj --no-document
           ruby RavzaWidgets/widget_ekle.rb
+          ruby App/ses_ekle.rb
 
       - name: CocoaPods
         working-directory: ios/App
