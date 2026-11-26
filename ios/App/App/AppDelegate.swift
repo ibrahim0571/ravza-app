@@ -46,4 +46,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
+    // 26 Kas (#8389/#8390, İbrahim "bildirim titremiyor ses gelmiyor"): Capacitor PushNotifications
+    // APNs cihaz jetonunu JS'e ancak bu iki yönlendirme ile iletir. Eksikti -> 'registration' olayı
+    // hiç gelmiyor, native_push_tokens 0 kayıt, iPhone'a sesli/titreşimli push hiç gitmiyordu.
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
+    }
+
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        NotificationCenter.default.post(name: .capacitorDidFailToRegisterForRemoteNotifications, object: error)
+    }
+
 }
